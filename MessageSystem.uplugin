@@ -3,22 +3,22 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "MessageSystem",
-	"Description": "Communicate between Actors with messages.",
+	"Description": "",
 	"Category": "Other",
-	"CreatedBy": "Benjamin Thomas Blodgett",
-	"CreatedByURL": "",
+	"CreatedBy": "Dream Seed LLC",
+	"CreatedByURL": "https://benvlodgi.github.io/",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"SupportURL": "",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
 			"Name": "MessageSystem",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen"
 		}
 	]
 }
