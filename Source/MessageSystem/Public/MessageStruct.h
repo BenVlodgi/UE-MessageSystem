@@ -5,7 +5,6 @@
 //#include "MessengerComponent.h"
 class UMessengerComponent;
 
-#include "ValueStoreStruct.h"
 #include "MessageParametersStruct.h"
 
 

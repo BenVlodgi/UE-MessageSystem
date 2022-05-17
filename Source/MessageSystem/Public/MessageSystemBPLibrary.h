@@ -8,7 +8,7 @@
 #endif
 
 #include "MessageParametersStruct.h"
-#include "MessageSystemGlobals.h"
+
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMessageSystem, Log, All);
 

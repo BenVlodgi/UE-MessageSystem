@@ -1,3 +1,0 @@
-
-#include "MessageSystemGlobals.h"
-

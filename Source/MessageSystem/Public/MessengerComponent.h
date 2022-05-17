@@ -23,16 +23,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	TArray<FMessageStruct> MessageEvents;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	FMessageStruct TRY_MessageEvent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
+	FName DefaultBroadcastEventName;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	AActor* TRY_Actor;
+	// Events this actor broadcasts and parameters those events may send.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
+	TMap<FName, FMessageParametersStruct> BroadcastEventDefinitions;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TWeakObjectPtr<AActor> TRY_SoftActor;
-	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
+	TMap<FName, FMessageParametersStruct> CustomInboundEventDefinitions;
+
 	
 protected:
 	// Called when the game starts

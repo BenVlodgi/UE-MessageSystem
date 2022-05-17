@@ -122,9 +122,9 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 		}
 
 		// Parse all function parameters.
-		uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize); // UE4
-		//uint8* Parms = (uint8*)FMemory_Alloca_Aligned(Function->ParmsSize, Function->GetMinAlignment()); // UE5
-		FMemory::Memzero(Parms, Function->ParmsSize);
+		uint8* Params = (uint8*)FMemory_Alloca(Function->ParmsSize); // UE4
+		//uint8* Params = (uint8*)FMemory_Alloca_Aligned(Function->ParmsSize, Function->GetMinAlignment()); // UE5
+		FMemory::Memzero(Params, Function->ParmsSize);
 
 		for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 		{
@@ -132,7 +132,7 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 			checkSlow(LocalProp);
 			if (!LocalProp->HasAnyPropertyFlags(CPF_ZeroConstructor))
 			{
-				LocalProp->InitializeValue_InContainer(Parms);
+				LocalProp->InitializeValue_InContainer(Params);
 			}
 		}
 
@@ -143,14 +143,13 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 		{
 			FProperty* PropertyParam = *It;
 			checkSlow(PropertyParam); // Fix static analysis warning
-			FName Key = FName(PropertyParam->GetName());
 			if (NumParamsEvaluated == 0 && Executor)
 			{
 				FObjectPropertyBase* Op = CastField<FObjectPropertyBase>(*It);
 				if (Op && Executor->IsA(Op->PropertyClass))
 				{
 					// First parameter is implicit reference to object executing the command.
-					Op->SetObjectPropertyValue(Op->ContainerPtrToValuePtr<uint8>(Parms), Executor);
+					Op->SetObjectPropertyValue(Op->ContainerPtrToValuePtr<uint8>(Params), Executor);
 					continue;
 				}
 			}
@@ -178,7 +177,7 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 					{
 						bFoundDefault = true;
 
-						const TCHAR* Result = It->ImportText(*PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL);
+						const TCHAR* Result = It->ImportText(*PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
 						bFailedImport = (Result == nullptr);
 					}
 				}
@@ -186,6 +185,7 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 #endif
 
 			{
+				FName Key = FName(PropertyParam->GetName());
 				FMessageParameterValueStruct* MessageParameterValue = Parameters.Parameters.Find(Key);
 				if (MessageParameterValue)
 				{
@@ -194,7 +194,7 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 						? MessageParameterValue->ParameterValue
 						: MessageParameterValue->ParameterValue_AsSoftActorReference.ToString();
 
-					const TCHAR* Result = It->ImportText(*PropertyValue, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL);
+					const TCHAR* Result = It->ImportText(*PropertyValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
 					bFailedImport = (Result == nullptr);
 				}
 				else
@@ -214,7 +214,7 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 			//		ArgStr = FString(RemainingStr).TrimStart();
 			//	}
 			//
-			//	const TCHAR* Result = It->ImportText(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL);
+			//	const TCHAR* Result = It->ImportText(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
 			//	bFailedImport = (Result == nullptr);
 			//}
 
@@ -233,13 +233,13 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 
 		//if (!bFailed)
 		{
-			Target->ProcessEvent(Function, Parms);
+			Target->ProcessEvent(Function, Params);
 		}
 
 		//!!destructframe see also UObject::ProcessEvent
 		for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 		{
-			It->DestroyValue_InContainer(Parms);
+			It->DestroyValue_InContainer(Params);
 		}
 
 		// Success.
