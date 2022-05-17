@@ -7,6 +7,11 @@
 //#include "Engine/Selection.h"
 #endif
 
+#include "MessageParametersStruct.h"
+#include "MessageSystemGlobals.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogMessageSystem, Log, All);
+
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "MessageSystemBPLibrary.generated.h"
 
@@ -48,5 +53,7 @@ class UMessageSystemBPLibrary : public UBlueprintFunctionLibrary
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
 	static void GetClassFunctionProperies(const UClass* Class, FString FunctionName, TArray<FString>& PropertyNames);
 
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
+	static bool CallFunctionByNameWithArguments(UObject* Target, FName FunctionName, FMessageParametersStruct Parameters, FMessageParametersStruct& ReturnValues);
 
 };
