@@ -72,10 +72,10 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 
 	for (FMessageStruct message : sendMessages)
 	{
-		if (!message.TargetActorSoft.IsValid())
+		if (!message.TargetActor.IsValid())
 			continue;
 
-		AActor* targetActor = message.TargetActorSoft.Get();
+		AActor* targetActor = message.TargetActor.Get();
 		if (!IsValid(targetActor)) //double checking, might not need to.
 			continue;
 
@@ -97,7 +97,7 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 		sendingMessage.SendingActor = this->GetOwner();
 		sendingMessage.SendingComponent = this;
 		sendingMessage.OnTrigger = message.OnTrigger;
-		sendingMessage.TargetActorSoft = message.TargetActorSoft;
+		sendingMessage.TargetActor = message.TargetActor;
 		sendingMessage.SendEvent = message.SendEvent;
 		sendingMessage.EventParameters = parameters;
 		sendingMessage.Delay = message.Delay;
@@ -199,8 +199,3 @@ void UMessengerComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent
 	UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeChainProperty"));
 }
 #endif
-
-
-
-
-

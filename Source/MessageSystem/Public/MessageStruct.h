@@ -20,35 +20,51 @@ struct MESSAGESYSTEM_API FMessageStruct
 {
 	GENERATED_BODY()
 
+	// Actor the message originates from
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	AActor* SendingActor;
 
+	// Component who sent/broadcast this message
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	UMessengerComponent* SendingComponent;
 
+	// Name of triggering event on sending component/actor. The reason this message is being sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FName OnTrigger;
 
-	//// Parameters from sender
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	//FValueStoreStruct TriggerParameters; // Should TriggerParameters be merged with EventParameters?
-
+	// Parameters associated with the triggering event.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TWeakObjectPtr<AActor> TargetActorSoft;
+	FMessageParametersStruct TriggerParameters;
 
+	// Send this message to this actor.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	TSoftObjectPtr<AActor> TargetActor;
+
+	// Event message name to send. This can also be a function name on the actor. If the name contains a period, then it is targeting a component to send the message to or call function with name i.e. "ComponentName.FunctionName".
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FName SendEvent;
 
-	// Parameters prepared for the event
+	// Parameters for this message event. If the message is calling a function, these parameters will be used to fill the function parameter values.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FMessageParametersStruct EventParameters;
 
+	// How long after the triggering event before the message is sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	float Delay; // Should the delay be in waiting to send, or in waiting to process once received. 
+	float Delay;
 
-	// Delayed (Latent) Actions will not be sent if the Sender is destroyed before the delay time has elapsed.
+	// Delayed Actions will not be sent if the Sender is destroyed before the delay time has elapsed.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	bool bCancelIfSenderIsDestroyed;
-	
+
+	// If this message will be sent when the triggering event is broadcast.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	bool bEnabled = true;
+
+	//// This message only can fire once.
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	//bool bOnlyOnce = false;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	//bool RestartDelay = [Block Until Fired, Retrigger Delay Cooldown, Queue Multiple];
 	
 };
