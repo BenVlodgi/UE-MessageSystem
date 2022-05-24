@@ -124,7 +124,7 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 		{
 			messengerComponent->ReceiveMessage(sendingMessage);
 		}
-	} 
+	}
 
 #if WITH_EDITOR
 	if (GEngine)
@@ -173,16 +173,20 @@ bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
 	UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
 
 	// Update Editor registry of all these components
+	
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (!world)
+		return returnValue;
 
-	//UGameInstance* GameInstance = GetWorld()->GetGameInstance();
-	//if (IsValid(GameInstance))
-	//{
-	//	UMessageSystemSubsystem* MessageSystemSubsystem = UGameInstance::GetSubsystem<UMessageSystemSubsystem>(GameInstance);
-	//	if (IsValid(MessageSystemSubsystem))
-	//	{
-	//		MessageSystemSubsystem->MessengerComponentUpdated(this);
-	//	}
-	//}
+	UGameInstance* GameInstance = world->GetGameInstance();
+	if (!IsValid(GameInstance))
+		return returnValue;
+
+	UMessageSystemSubsystem* MessageSystemSubsystem = UGameInstance::GetSubsystem<UMessageSystemSubsystem>(GameInstance);
+	if (!IsValid(MessageSystemSubsystem))
+		return returnValue;
+
+	MessageSystemSubsystem->MessengerComponentUpdated(this);
 
 	return returnValue;
 }

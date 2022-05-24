@@ -6,7 +6,7 @@
 class UMessengerComponent;
 
 #include "MessageParametersStruct.h"
-
+#include "Misc/Guid.h"
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
@@ -19,6 +19,9 @@ USTRUCT(BlueprintType)
 struct MESSAGESYSTEM_API FMessageStruct
 {
 	GENERATED_BODY()
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	//FGuid ID;
 
 	// Actor the message originates from
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
