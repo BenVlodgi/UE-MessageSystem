@@ -7,7 +7,11 @@
 //#include "Engine/Selection.h"
 #endif
 
+
+
 #include "MessageParametersStruct.h"
+#include "MessageStruct.h"
+
 
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMessageSystem, Log, All);
@@ -46,7 +50,7 @@ class UMessageSystemBPLibrary : public UBlueprintFunctionLibrary
 	static void GetInterfaceFunctionNames(const UClass* Class, TArray<FString>& FunctionNames);
 
 	/** Get all function names from this Interface that have a specified keyword. **/
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem", meta=(DevelopmentOnly))
 	static void GetInterfaceFunctionNamesWithKeyword(const UClass* Class, FString keyword, TArray<FString>& FunctionNames);
 
 	/** Get all function names from this Interface that have a specified keyword. **/
@@ -55,5 +59,10 @@ class UMessageSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
 	static bool CallFunctionByNameWithArguments(UObject* Target, FName FunctionName, FMessageParametersStruct Parameters, FMessageParametersStruct& ReturnValues);
+
+	UFUNCTION(BlueprintPure, Category = "MessageSystem")
+	static FString MessageToString(FMessageStruct Message);
+
+
 
 };

@@ -3,8 +3,7 @@
 #pragma once
 
 //#include "MessengerComponent.h"
-class UMessengerComponent;
-
+class UMessengerComponent; // Forward Declaration can be used for pointers.
 #include "MessageParametersStruct.h"
 #include "Misc/Guid.h"
 
@@ -12,16 +11,14 @@ class UMessengerComponent;
 #include "UObject/NoExportTypes.h"
 #include "MessageStruct.generated.h"
 
-/**
- * 
- */
+
 USTRUCT(BlueprintType)
 struct MESSAGESYSTEM_API FMessageStruct
 {
 	GENERATED_BODY()
 
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	//FGuid ID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	FGuid ID;
 
 	// Actor the message originates from
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")

@@ -1,4 +1,5 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Dream Seed LLC
+
 
 #include "MessageSystemBPLibrary.h"
 #include "MessageSystem.h"
@@ -48,6 +49,7 @@ void UMessageSystemBPLibrary::GetInterfaceFunctionNames(const UClass* Class, TAr
 
 void UMessageSystemBPLibrary::GetInterfaceFunctionNamesWithKeyword(const UClass* Class, FString keyword, TArray<FString>& FunctionNames)
 {
+#if WITH_EDITORONLY_DATA //HasMetaData is editor only
 	FunctionNames.Empty();
 	for (TFieldIterator<UFunction> FIT(Class); FIT; ++FIT)
 	{
@@ -61,6 +63,7 @@ void UMessageSystemBPLibrary::GetInterfaceFunctionNamesWithKeyword(const UClass*
 			}
 		}
 	}
+#endif
 }
 
 void UMessageSystemBPLibrary::GetClassFunctionProperies(const UClass* Class, FString FunctionName, TArray<FString>& PropertyNames)
@@ -246,6 +249,17 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 		return true;
 	}
 	return false;
+}
+
+FString UMessageSystemBPLibrary::MessageToString(FMessageStruct message)
+{
+	return FString(TEXT(""));
+
+	//return FString(TEXT("Message: %s : %s : %s"), 
+	//	IsValid(message.SendingActor) ? message.SendingActor->GetName() : "Invalid",
+	//	message.OnTrigger,
+	//	message.TargetActor.IsValid() ? message.TargetActor.GetAssetName() : "Invalid"
+	//);
 }
 
 /*

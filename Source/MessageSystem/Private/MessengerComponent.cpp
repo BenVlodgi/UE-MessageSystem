@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "MessengerComponent.h"
 
 
@@ -139,6 +138,25 @@ void UMessengerComponent::SendMessage(AActor* TargetActor, FName SendEvent, FMes
 	UE_LOG(LogTemp, Warning, TEXT("Called: Send Message (Not implemented yet)"));
 }
 
+void UMessengerComponent::AddMessage(FMessageStruct& Message)
+{
+	Message.ID = FGuid::NewGuid();
+	Message.SendingComponent = this;
+	Message.SendingActor = this->GetOwner();
+
+	MessageEvents.Add(Message);
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->AddMessage(Message);
+		}
+	}
+}
+
 
 void UMessengerComponent::InitializeComponent()
 {
@@ -172,21 +190,17 @@ bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
 	bool returnValue = Super::Modify(bAlwaysMarkDirty);
 	UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
 
-	// Update Editor registry of all these components
-	
+	// Update Engine registry of all these components
+
 	UWorld* world = GetWorld(); // No world during editor startup
-	if (!world)
-		return returnValue;
-
-	UGameInstance* GameInstance = world->GetGameInstance();
-	if (!IsValid(GameInstance))
-		return returnValue;
-
-	UMessageSystemSubsystem* MessageSystemSubsystem = UGameInstance::GetSubsystem<UMessageSystemSubsystem>(GameInstance);
-	if (!IsValid(MessageSystemSubsystem))
-		return returnValue;
-
-	MessageSystemSubsystem->MessengerComponentUpdated(this);
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->MessengerComponentUpdated(this);
+		}
+	}
 
 	return returnValue;
 }

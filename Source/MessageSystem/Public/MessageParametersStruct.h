@@ -8,9 +8,7 @@
 #include "UObject/NoExportTypes.h"
 #include "MessageParametersStruct.generated.h"
 
-/**
- * 
- */
+// 
 USTRUCT(BlueprintType)
 struct MESSAGESYSTEM_API FMessageParametersStruct
 {

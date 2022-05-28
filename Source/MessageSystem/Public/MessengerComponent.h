@@ -5,12 +5,15 @@
 #include "MessageSystemSubsystem.h"
 #include "MessageStruct.h"
 #include "MessageSystemBPLibrary.h"
+#include "Misc/Guid.h"
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "MessengerComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FReceiveMessageDelegate, UMessengerComponent*, DeliveringComponent, FMessageStruct, Message);
+
+
 
 UCLASS(Blueprintable, ClassGroup=(MessageSystem), meta=(BlueprintSpawnableComponent))
 class MESSAGESYSTEM_API UMessengerComponent : public UActorComponent
@@ -33,6 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
 	TMap<FName, FMessageParametersStruct> CustomInboundEventDefinitions;
 
+	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
+	FReceiveMessageDelegate OnReceiveMessage;
+
 	
 protected:
 	// Called when the game starts
@@ -54,8 +60,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
 	void SendMessage(AActor* TargetActor, FName SendEvent, FMessageParametersStruct TriggerParameters);
 
-	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
-	FReceiveMessageDelegate OnReceiveMessage;
+
+
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	void AddMessage(FMessageStruct& Message);
+
+	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	//void UpdateMessage(FMessageStruct Message);
+	//
+	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	//void RemoveMessage(FMessageStruct Message);
+	//
+	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	//void RemoveMessageByID(FGuid ID);
+
+
+
+
 
 
 
