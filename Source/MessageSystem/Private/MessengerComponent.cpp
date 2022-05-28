@@ -159,7 +159,7 @@ void UMessengerComponent::AddMessage(FMessageStruct& Message)
 
 void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 {
-	for (int i = MessageEvents.Num(); i >= 0; i--)
+	for (int i = MessageEvents.Num() - 1; i >= 0; i--)
 	{
 		if (MessageEvents[i].ID == Message.ID)
 		{
