@@ -4,7 +4,7 @@
 
 //#include "MessengerComponent.h"
 class UMessengerComponent; // Forward Declaration can be used for pointers.
-#include "MessageParametersStruct.h"
+#include "Structs/MessageParametersStruct.h"
 #include "Misc/Guid.h"
 
 #include "CoreMinimal.h"

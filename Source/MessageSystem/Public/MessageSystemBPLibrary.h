@@ -9,8 +9,8 @@
 
 
 
-#include "MessageParametersStruct.h"
-#include "MessageStruct.h"
+#include "Structs/MessageParametersStruct.h"
+#include "Structs/MessageStruct.h"
 
 
 

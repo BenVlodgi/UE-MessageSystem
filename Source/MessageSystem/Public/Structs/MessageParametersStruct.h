@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "MessageParameterValueStruct.h"
+#include "Structs/MessageParameterValueStruct.h"
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"

@@ -6,9 +6,9 @@
 
 //#include "MessengerComponent.h"
 class UMessengerComponent;
-#include "WorldTypeEnum.h"
-#include "GuidArrayStruct.h"
-#include "MessagesCollectionsStruct.h"
+#include "Enums/WorldTypeEnum.h"
+#include "Structs/GuidArrayStruct.h"
+#include "Structs/MessagesCollectionsStruct.h"
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"

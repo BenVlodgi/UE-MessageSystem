@@ -3,7 +3,7 @@
 #pragma once
 
 #include "MessageSystemSubsystem.h"
-#include "MessageStruct.h"
+#include "Structs/MessageStruct.h"
 #include "MessageSystemBPLibrary.h"
 #include "Misc/Guid.h"
 

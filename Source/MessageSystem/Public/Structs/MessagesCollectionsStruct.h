@@ -1,8 +1,8 @@
 #pragma once
 
-#include "MessageStruct.h"
+#include "Structs/MessageStruct.h"
 class UMessengerComponent;
-#include "GuidArrayStruct.h"
+#include "Structs/GuidArrayStruct.h"
 #include "Misc/Guid.h"
 //class AActor;
 
