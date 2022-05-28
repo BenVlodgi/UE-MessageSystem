@@ -2,7 +2,7 @@
 
 #include "MessageStruct.h"
 class UMessengerComponent;
-#include "MessagesArrayStruct.h"
+#include "GuidArrayStruct.h"
 #include "Misc/Guid.h"
 //class AActor;
 
@@ -16,14 +16,14 @@ struct MESSAGESYSTEM_API FMessagesCollectionsStruct
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
-	TArray<UMessengerComponent*> AllMessengerComponents;
+	TArray<TSoftObjectPtr<UMessengerComponent>> AllMessengerComponents;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
-	TMap<FGuid, FMessagesArrayStruct> AllMessages;
+	TMap<FGuid, FMessageStruct> AllMessages;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
-	TMap<UMessengerComponent*, FMessagesArrayStruct> AllMessagesBySender;
+	TMap<TSoftObjectPtr<UMessengerComponent>, FGuidArrayStruct> AllMessagesBySender;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
-	TMap<TSoftObjectPtr<AActor>, FMessagesArrayStruct> AllMessagesByReceivingActor;
+	TMap<TSoftObjectPtr<AActor>, FGuidArrayStruct> AllMessagesByReceivingActor;
 };

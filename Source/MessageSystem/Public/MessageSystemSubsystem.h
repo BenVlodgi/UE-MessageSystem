@@ -7,7 +7,7 @@
 //#include "MessengerComponent.h"
 class UMessengerComponent;
 #include "WorldTypeEnum.h"
-#include "MessagesArrayStruct.h"
+#include "GuidArrayStruct.h"
 #include "MessagesCollectionsStruct.h"
 
 #include "CoreMinimal.h"
@@ -47,6 +47,7 @@ public:
 
 	UFUNCTION()
 	void AddMessage(FMessageStruct Message);
+
 
 	EWorldTypeEnum ToWorldTypeEnum(TEnumAsByte<EWorldType::Type> WorldType)
 	{
