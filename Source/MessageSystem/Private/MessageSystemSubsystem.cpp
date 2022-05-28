@@ -128,9 +128,45 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message)
 					messagesByReceivingActor->Array.Add(Message.ID);
 				}
 
-				// Trying to commit changes made here
+				// Ensure to commit changes made here
 				MessagesCollectionsByWorld.Add(worldType, messagesCollections);
 
+				OnMessengerComponentUpdated.Broadcast(messengerComponent);
+			}
+		}
+	}
+}
+
+void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message)
+{
+	if (Message.SendingComponent.IsValid())
+	{
+		UMessengerComponent* messengerComponent = Message.SendingComponent.Get();
+		if (IsValid(messengerComponent)) // This check may not be nessesary
+		{
+			UWorld* world = messengerComponent->GetWorld();
+			if (IsValid(world))
+			{
+				EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+				FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
+
+				if (messagesCollections)
+				{
+					//messagesCollections->AllMessengerComponents.Remove(messengerComponent); // We still want to know about the component even if it doesn't have messages
+					messagesCollections->AllMessages.Remove(Message.ID);
+
+					FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(messengerComponent);
+					if (messagesBySender)
+					{
+						messagesBySender->Array.Remove(Message.ID);
+					}
+
+					FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(Message.TargetActor);
+					if (messagesByReceivingActor)
+					{
+						messagesByReceivingActor->Array.Remove(Message.ID);
+					}
+				}
 
 				OnMessengerComponentUpdated.Broadcast(messengerComponent);
 			}

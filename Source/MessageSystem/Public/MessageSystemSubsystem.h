@@ -48,6 +48,9 @@ public:
 	UFUNCTION()
 	void AddMessage(FMessageStruct Message);
 
+	UFUNCTION()
+	void RemoveMessage(FMessageStruct Message);
+
 
 	EWorldTypeEnum ToWorldTypeEnum(TEnumAsByte<EWorldType::Type> WorldType)
 	{
