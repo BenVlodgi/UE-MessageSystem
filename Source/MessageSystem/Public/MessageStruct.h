@@ -22,11 +22,11 @@ struct MESSAGESYSTEM_API FMessageStruct
 
 	// Actor the message originates from
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	AActor* SendingActor;
+	TSoftObjectPtr<AActor> SendingActor;
 
 	// Component who sent/broadcast this message
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	UMessengerComponent* SendingComponent;
+	TSoftObjectPtr<UMessengerComponent> SendingComponent;
 
 	// Name of triggering event on sending component/actor. The reason this message is being sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
