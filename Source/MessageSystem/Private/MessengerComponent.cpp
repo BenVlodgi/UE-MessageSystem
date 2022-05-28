@@ -157,13 +157,48 @@ void UMessengerComponent::AddMessage(FMessageStruct& Message)
 	}
 }
 
+void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
+{
+	for (int i = MessageEvents.Num(); i >= 0; i--)
+	{
+		if (MessageEvents[i].ID == Message.ID)
+		{
+			MessageEvents.RemoveAt(i);
+			break;
+		}
+	}
+	//MessageEvents.Remove(Message);
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->RemoveMessage(Message);
+		}
+	}
+}
+
+void UMessengerComponent::UpdateMessage(FMessageStruct Message)
+{
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->UpdateMessage(Message);
+		}
+	}
+}
+
 
 void UMessengerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 	UE_LOG(LogTemp, Warning, TEXT("Called: InitializeComponent"));
 }
-
 
 void UMessengerComponent::OnRegister()
 {
@@ -182,7 +217,6 @@ void UMessengerComponent::PostLoad()
 	Super::PostLoad();
 	UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
 }
-
 
 #if WITH_EDITOR
 bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)

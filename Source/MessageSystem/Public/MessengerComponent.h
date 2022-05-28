@@ -23,8 +23,9 @@ class MESSAGESYSTEM_API UMessengerComponent : public UActorComponent
 
 public:
 	// Broadcast these messages when event is triggered.
+	// TODO: Repplace Message list with TMap.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TArray<FMessageStruct> MessageEvents;
+	TArray<FMessageStruct> MessageEvents; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
 	FName DefaultBroadcastEventName;
@@ -65,12 +66,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	void AddMessage(FMessageStruct& Message);
 
-	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
-	//void UpdateMessage(FMessageStruct Message);
-	//
-	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
-	//void RemoveMessage(FMessageStruct Message);
-	//
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	void RemoveMessage(const FMessageStruct Message);
+
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	void UpdateMessage(FMessageStruct Message);
+	
 	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	//void RemoveMessageByID(FGuid ID);
 

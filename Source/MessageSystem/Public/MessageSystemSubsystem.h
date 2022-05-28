@@ -46,10 +46,13 @@ public:
 	void MessengerComponentRemoved(UMessengerComponent* MessengerComponent);
 
 	UFUNCTION()
-	void AddMessage(FMessageStruct Message);
+	void AddMessage(FMessageStruct Message, bool BroadcastUpdate = true);
 
 	UFUNCTION()
-	void RemoveMessage(FMessageStruct Message);
+	void RemoveMessage(FMessageStruct Message, bool BroadcastUpdate = true);
+
+	UFUNCTION()
+	void UpdateMessage(FMessageStruct Message, bool BroadcastUpdate = true);
 
 
 	EWorldTypeEnum ToWorldTypeEnum(TEnumAsByte<EWorldType::Type> WorldType)

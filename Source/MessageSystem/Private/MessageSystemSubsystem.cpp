@@ -100,7 +100,7 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 	//OnMessengerComponentRemoved.Broadcast(MessengerComponent);
 }
 
-void UMessageSystemSubsystem::AddMessage(FMessageStruct Message)
+void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastUpdate)
 {
 	if (Message.SendingComponent.IsValid())
 	{
@@ -131,13 +131,16 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message)
 				// Ensure to commit changes made here
 				MessagesCollectionsByWorld.Add(worldType, messagesCollections);
 
-				OnMessengerComponentUpdated.Broadcast(messengerComponent);
+				if (BroadcastUpdate)
+				{
+					OnMessengerComponentUpdated.Broadcast(messengerComponent);
+				}
 			}
 		}
 	}
 }
 
-void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message)
+void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool BroadcastUpdate)
 {
 	if (Message.SendingComponent.IsValid())
 	{
@@ -168,6 +171,27 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message)
 					}
 				}
 
+				if (BroadcastUpdate)
+				{
+					OnMessengerComponentUpdated.Broadcast(messengerComponent);
+				}
+			}
+		}
+	}
+}
+
+void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, bool BroadcastUpdate)
+{
+	if (Message.SendingComponent.IsValid())
+	{
+		UMessengerComponent* messengerComponent = Message.SendingComponent.Get();
+		if (IsValid(messengerComponent)) // This check may not be nessesary
+		{
+			RemoveMessage(Message, false);
+			AddMessage(Message, false);
+
+			if (BroadcastUpdate)
+			{
 				OnMessengerComponentUpdated.Broadcast(messengerComponent);
 			}
 		}
