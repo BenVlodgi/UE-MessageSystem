@@ -6,98 +6,83 @@
 
 void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* MessengerComponent)
 {
-	// TODO: make sure we update the correct one.
+	if (IsValid(MessengerComponent))
+	{
+		UWorld* world = MessengerComponent->GetWorld();
+		if (IsValid(world))
+		{
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
 
-	//if (IsValid(MessengerComponent))
-	//{
-	//	UWorld* world = MessengerComponent->GetWorld();
-	//	if (IsValid(world))
-	//	{
-	//		EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-	//		FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
-	//
-	//		// Remove existing messages for this component from the AllMessagesByReceivingActor dictionary.
-	//		FMessagesArrayStruct messagesArray = messagesCollections.AllMessagesBySender.FindOrAdd(MessengerComponent);
-	//		for (FMessageStruct message : messagesArray.Array)
-	//		{
-	//			FMessagesArrayStruct targetMessagesArray = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(message.TargetActor);
-	//
-	//			// Reverse loop over, because we may be removing from this list
-	//			for (int i = targetMessagesArray.Array.Max(); i >= 0; i--)
-	//			{
-	//				FMessageStruct targetMessage = targetMessagesArray.Array[i];
-	//				if (targetMessage.SendingComponent == MessengerComponent)
-	//				{
-	//					targetMessagesArray.Array.RemoveAt(i);
-	//				}
-	//			}
-	//		}
-	//
-	//		// Remove messages from AllMessagesBySender dictionary.
-	//		messagesCollections.AllMessagesBySender.Remove(MessengerComponent);
-	//
-	//
-	//
-	//		// Add messages for this component to the AllMessagesBySender & AllMessagesBySender dictionaries.
-	//		messagesCollections.AllMessengerComponents.AddUnique(MessengerComponent);
-	//
-	//		for (FMessageStruct message : MessengerComponent->MessageEvents)
-	//		{
-	//			messagesArray.Array.Add(message);
-	//
-	//			FMessagesArrayStruct targetMessagesArray = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(message.TargetActor);
-	//			targetMessagesArray.Array.Add(message);
-	//
-	//			// Trying to commit changes made here
-	//			messagesCollections.AllMessagesByReceivingActor.Add(message.TargetActor, targetMessagesArray);
-	//		}
-	//
-	//		// Trying to commit changes made here
-	//		MessagesCollectionsByWorld.Add(worldType, messagesCollections);
-	//	}
-	//}
-	//
-	//OnMessengerComponentUpdated.Broadcast(MessengerComponent);
+			//Only do this once, the first time the component is modified. This will also happen in a newly duplicated actor/component
+			int index = messagesCollections.AllMessengerComponents.Find(MessengerComponent);
+			if (index < 0)
+			{
+				if (MessengerComponent->MessageEvents.Num() > 0)
+				{
+					for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
+					{
+
+						// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
+						AActor* SendingActor = MessengerComponent->GetOwner();
+						if (MessengerComponent->MessageEvents[i].SendingActor != SendingActor 
+						 || MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
+						{
+							MessengerComponent->MessageEvents[i].SendingActor = MessengerComponent->GetOwner();
+							MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
+
+							// This component/actor was likely copied which is why the sender didn't match.
+							// We will get a new ID for our message, so it won't have the same ID as its copy-source.
+							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid();
+						}
+
+						// If this has a bad Guid, lets generate a new one.
+						// This could happen if someone added the event manually to the component.
+						if (!MessengerComponent->MessageEvents[i].ID.IsValid())
+						{
+							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid(); // bbbb <-- Annette typed those
+						}
+
+						// Add to cache.
+						AddMessage(MessengerComponent->MessageEvents[i], false); // Don't broadcast, we'll handle that.
+					}
+				}
+				else // If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
+				{
+					messagesCollections.AllMessengerComponents.AddUnique(MessengerComponent);
+
+					// Ensure to commit changes made here
+					MessagesCollectionsByWorld.Add(worldType, messagesCollections);
+				}
+
+				OnMessengerComponentUpdated.Broadcast(MessengerComponent);
+			}
+		}
+	}
+
 }
 
 void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* MessengerComponent)
 {
-	// TODO: Make sure we remove this component. It might be null already.
+	if (IsValid(MessengerComponent))
+	{
+		UWorld* world = MessengerComponent->GetWorld();
+		if (IsValid(world))
+		{
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
+			if (messagesCollections)
+			{
+				// Remove these messages. Reverse because this affects the array we are iterating over
+				for (int i = MessengerComponent->MessageEvents.Num()- 1; i >= 0 ; i--)
+				{
+					RemoveMessage(MessengerComponent->MessageEvents[i], false); // Don't broadcast, we'll handle that.
+				}
 
-	//if (IsValid(MessengerComponent))
-	//{
-	//	UWorld* world = MessengerComponent->GetWorld();
-	//	if (IsValid(world))
-	//	{
-	//		EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-	//		FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
-	//
-	//		// Remove existing messages for this component from the AllMessagesByReceivingActor dictionary.
-	//		FMessagesArrayStruct messagesArray = messagesCollections.AllMessagesBySender.FindOrAdd(MessengerComponent);
-	//		for (FMessageStruct message : messagesArray.Array)
-	//		{
-	//			FMessagesArrayStruct targetMessagesArray = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(message.TargetActor);
-	//
-	//			// Reverse loop over, because we may be removing from this list
-	//			for (int i = targetMessagesArray.Array.Max(); i >= 0; i--)
-	//			{
-	//				FMessageStruct targetMessage = targetMessagesArray.Array[i];
-	//				if (targetMessage.SendingComponent == MessengerComponent)
-	//				{
-	//					targetMessagesArray.Array.RemoveAt(i);
-	//				}
-	//			}
-	//		}
-	//
-	//		// Remove messages from AllMessagesBySender dictionary.
-	//		messagesCollections.AllMessagesBySender.Remove(MessengerComponent);
-	//
-	//		// Remove component from list of components
-	//		messagesCollections.AllMessengerComponents.Remove(MessengerComponent);
-	//	}
-	//}
-	//
-	//OnMessengerComponentRemoved.Broadcast(MessengerComponent);
+			}
+		}
+	}
+	OnMessengerComponentRemoved.Broadcast(MessengerComponent);
 }
 
 void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastUpdate)
@@ -113,22 +98,18 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastU
 				EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
 				FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
 
-				messagesCollections.AllMessengerComponents.Add(messengerComponent);
+				messagesCollections.AllMessengerComponents.AddUnique(messengerComponent);
 				messagesCollections.AllMessages.Add(Message.ID, Message);
 
-				FGuidArrayStruct* messagesBySender = messagesCollections.AllMessagesBySender.Find(messengerComponent);
-				if (messagesBySender)
-				{
-					messagesBySender->Array.Add(Message.ID);
-				}
+				FGuidArrayStruct messagesBySender = messagesCollections.AllMessagesBySender.FindOrAdd(messengerComponent);
+				messagesBySender.Array.AddUnique(Message.ID);
 
-				FGuidArrayStruct* messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.Find(Message.TargetActor);
-				if (messagesByReceivingActor)
-				{
-					messagesByReceivingActor->Array.Add(Message.ID);
-				}
-
+				FGuidArrayStruct messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(Message.TargetActor);
+				messagesByReceivingActor.Array.AddUnique(Message.ID);
+				
 				// Ensure to commit changes made here
+				messagesCollections.AllMessagesBySender.Add(messengerComponent, messagesBySender);
+				messagesCollections.AllMessagesByReceivingActor.Add(Message.TargetActor, messagesByReceivingActor);
 				MessagesCollectionsByWorld.Add(worldType, messagesCollections);
 
 				if (BroadcastUpdate)
@@ -144,7 +125,7 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool Broadca
 {
 	if (Message.SendingComponent.IsValid())
 	{
-		UMessengerComponent* messengerComponent = Message.SendingComponent.Get();
+		UMessengerComponent* messengerComponent = Message.SendingComponent.Get(); // Only using this to get the correct world
 		if (IsValid(messengerComponent)) // This check may not be nessesary
 		{
 			UWorld* world = messengerComponent->GetWorld();
@@ -155,16 +136,24 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool Broadca
 
 				if (messagesCollections)
 				{
-					//messagesCollections->AllMessengerComponents.Remove(messengerComponent); // We still want to know about the component even if it doesn't have messages
+
+					FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID);
+
+					TSoftObjectPtr<UMessengerComponent> cachedSendingComponent;
+					if (cachedMessage)
+					{
+						cachedSendingComponent = cachedMessage->SendingComponent;
+					}
+
 					messagesCollections->AllMessages.Remove(Message.ID);
 
-					FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(messengerComponent);
+					FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(cachedSendingComponent);
 					if (messagesBySender)
 					{
 						messagesBySender->Array.Remove(Message.ID);
 					}
 
-					FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(Message.TargetActor);
+					FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(cachedMessage->TargetActor);
 					if (messagesByReceivingActor)
 					{
 						messagesByReceivingActor->Array.Remove(Message.ID);

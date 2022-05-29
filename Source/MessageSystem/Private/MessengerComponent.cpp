@@ -182,6 +182,16 @@ void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 
 void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 {
+	for (int i = 0; i < MessageEvents.Num(); i++)
+	{
+		if (MessageEvents[i].ID == Message.ID)
+		{
+			MessageEvents[i] = Message;
+			break;
+		}
+	}
+
+
 	UWorld* world = GetWorld(); // No world during editor startup
 	if (IsValid(world) && IsValid(GEngine))
 	{
@@ -204,6 +214,12 @@ void UMessengerComponent::OnRegister()
 {
 	Super::OnRegister();
 	UE_LOG(LogTemp, Warning, TEXT("Called: OnRegister"));
+}
+
+void UMessengerComponent::OnUnregister()
+{
+	Super::OnUnregister();
+	UE_LOG(LogTemp, Warning, TEXT("Called: OnUnregister"));
 }
 
 void UMessengerComponent::PostInitProperties()

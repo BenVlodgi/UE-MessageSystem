@@ -103,7 +103,8 @@ public:
 // - PostEditChangeChainProperty
 
 protected:
-	void OnRegister() override;
+	void OnRegister() override; //Called when a component is registered, after Scene is set, but before CreateRenderState_Concurrent or OnCreatePhysicsState are called.
+	void OnUnregister() override; //Called when a component is unregistered. Called after DestroyRenderState_Concurrent and OnDestroyPhysicsState are called.
 
 public:
 	void InitializeComponent() override;
