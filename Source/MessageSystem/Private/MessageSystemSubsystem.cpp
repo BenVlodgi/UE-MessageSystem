@@ -24,11 +24,8 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 					{
 
 						// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
-						AActor* SendingActor = MessengerComponent->GetOwner();
-						if (MessengerComponent->MessageEvents[i].SendingActor != SendingActor 
-						 || MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
+						if (MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
 						{
-							MessengerComponent->MessageEvents[i].SendingActor = MessengerComponent->GetOwner();
 							MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
 
 							// This component/actor was likely copied which is why the sender didn't match.
@@ -74,7 +71,7 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 			if (messagesCollections)
 			{
 				// Remove these messages. Reverse because this affects the array we are iterating over
-				for (int i = MessengerComponent->MessageEvents.Num()- 1; i >= 0 ; i--)
+				for (int i = MessengerComponent->MessageEvents.Num() - 1; i >= 0; i--)
 				{
 					RemoveMessage(MessengerComponent->MessageEvents[i], false); // Don't broadcast, we'll handle that.
 				}
@@ -87,35 +84,32 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 
 void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastUpdate)
 {
-	if (Message.SendingComponent.IsValid())
+	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get();
+	if (IsValid(messengerComponent)) // This check may not be nessesary
 	{
-		UMessengerComponent* messengerComponent = Message.SendingComponent.Get();
-		if (IsValid(messengerComponent)) // This check may not be nessesary
+		UWorld* world = messengerComponent->GetWorld();
+		if (IsValid(world))
 		{
-			UWorld* world = messengerComponent->GetWorld();
-			if (IsValid(world))
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
+
+			messagesCollections.AllMessengerComponents.AddUnique(messengerComponent);
+			messagesCollections.AllMessages.Add(Message.ID, Message);
+
+			FGuidArrayStruct messagesBySender = messagesCollections.AllMessagesBySender.FindOrAdd(messengerComponent);
+			messagesBySender.Array.AddUnique(Message.ID);
+
+			FGuidArrayStruct messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(Message.TargetActor);
+			messagesByReceivingActor.Array.AddUnique(Message.ID);
+
+			// Ensure to commit changes made here
+			messagesCollections.AllMessagesBySender.Add(messengerComponent, messagesBySender);
+			messagesCollections.AllMessagesByReceivingActor.Add(Message.TargetActor, messagesByReceivingActor);
+			MessagesCollectionsByWorld.Add(worldType, messagesCollections);
+
+			if (BroadcastUpdate)
 			{
-				EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-				FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
-
-				messagesCollections.AllMessengerComponents.AddUnique(messengerComponent);
-				messagesCollections.AllMessages.Add(Message.ID, Message);
-
-				FGuidArrayStruct messagesBySender = messagesCollections.AllMessagesBySender.FindOrAdd(messengerComponent);
-				messagesBySender.Array.AddUnique(Message.ID);
-
-				FGuidArrayStruct messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(Message.TargetActor);
-				messagesByReceivingActor.Array.AddUnique(Message.ID);
-				
-				// Ensure to commit changes made here
-				messagesCollections.AllMessagesBySender.Add(messengerComponent, messagesBySender);
-				messagesCollections.AllMessagesByReceivingActor.Add(Message.TargetActor, messagesByReceivingActor);
-				MessagesCollectionsByWorld.Add(worldType, messagesCollections);
-
-				if (BroadcastUpdate)
-				{
-					OnMessengerComponentUpdated.Broadcast(messengerComponent);
-				}
+				OnMessengerComponentUpdated.Broadcast(messengerComponent);
 			}
 		}
 	}
@@ -123,47 +117,46 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastU
 
 void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool BroadcastUpdate)
 {
-	if (Message.SendingComponent.IsValid())
+	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get(); // Only using this to get the correct world
+
+	if (IsValid(messengerComponent))
 	{
-		UMessengerComponent* messengerComponent = Message.SendingComponent.Get(); // Only using this to get the correct world
-		if (IsValid(messengerComponent)) // This check may not be nessesary
+		UWorld* world = messengerComponent->GetWorld();
+		if (IsValid(world))
 		{
-			UWorld* world = messengerComponent->GetWorld();
-			if (IsValid(world))
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
+
+			if (messagesCollections)
 			{
-				EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-				FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
 
-				if (messagesCollections)
+				FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID);
+
+				//TWeakObjectPtr<UMessengerComponent> cachedSendingComponent;
+				UMessengerComponent* cachedSendingComponent = NULL;
+				if (cachedMessage)
 				{
-
-					FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID);
-
-					TSoftObjectPtr<UMessengerComponent> cachedSendingComponent;
-					if (cachedMessage)
-					{
-						cachedSendingComponent = cachedMessage->SendingComponent;
-					}
-
-					messagesCollections->AllMessages.Remove(Message.ID);
-
-					FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(cachedSendingComponent);
-					if (messagesBySender)
-					{
-						messagesBySender->Array.Remove(Message.ID);
-					}
-
-					FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(cachedMessage->TargetActor);
-					if (messagesByReceivingActor)
-					{
-						messagesByReceivingActor->Array.Remove(Message.ID);
-					}
+					cachedSendingComponent = cachedMessage->SendingComponent;
 				}
 
-				if (BroadcastUpdate)
+				messagesCollections->AllMessages.Remove(Message.ID);
+
+				FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(cachedSendingComponent/*.Get()*/);
+				if (messagesBySender)
 				{
-					OnMessengerComponentUpdated.Broadcast(messengerComponent);
+					messagesBySender->Array.Remove(Message.ID);
 				}
+
+				FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(cachedMessage->TargetActor);
+				if (messagesByReceivingActor)
+				{
+					messagesByReceivingActor->Array.Remove(Message.ID);
+				}
+			}
+
+			if (BroadcastUpdate)
+			{
+				OnMessengerComponentUpdated.Broadcast(messengerComponent);
 			}
 		}
 	}
@@ -171,18 +164,15 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool Broadca
 
 void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, bool BroadcastUpdate)
 {
-	if (Message.SendingComponent.IsValid())
+	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get();
+	if (IsValid(messengerComponent))
 	{
-		UMessengerComponent* messengerComponent = Message.SendingComponent.Get();
-		if (IsValid(messengerComponent)) // This check may not be nessesary
-		{
-			RemoveMessage(Message, false);
-			AddMessage(Message, false);
+		RemoveMessage(Message, false);
+		AddMessage(Message, false);
 
-			if (BroadcastUpdate)
-			{
-				OnMessengerComponentUpdated.Broadcast(messengerComponent);
-			}
+		if (BroadcastUpdate)
+		{
+			OnMessengerComponentUpdated.Broadcast(messengerComponent);
 		}
 	}
 }

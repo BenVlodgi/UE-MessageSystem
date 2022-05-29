@@ -16,7 +16,7 @@ class UMessengerComponent;
 
 #include "MessageSystemSubsystem.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessengerComponentDelegate, UMessengerComponent*, MessengerComponent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessengerComponentDelegate, const UMessengerComponent*, MessengerComponent);
 
  
 UCLASS()

@@ -26,4 +26,5 @@ struct MESSAGESYSTEM_API FMessagesCollectionsStruct
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
 	TMap<TSoftObjectPtr<AActor>, FGuidArrayStruct> AllMessagesByReceivingActor;
+
 };

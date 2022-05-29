@@ -20,13 +20,10 @@ struct MESSAGESYSTEM_API FMessageStruct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FGuid ID;
 
-	// Actor the message originates from
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TSoftObjectPtr<AActor> SendingActor;
-
 	// Component who sent/broadcast this message
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TSoftObjectPtr<UMessengerComponent> SendingComponent;
+	//TWeakObjectPtr<UMessengerComponent> SendingComponent;
+	UMessengerComponent* SendingComponent; // TODO: Make this soft again. And don't populate this until sent. When removing a message from subsystem pass along the holder.
 
 	// Name of triggering event on sending component/actor. The reason this message is being sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")

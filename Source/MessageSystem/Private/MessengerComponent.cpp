@@ -93,7 +93,6 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 		}
 
 		FMessageStruct sendingMessage = FMessageStruct();
-		sendingMessage.SendingActor = this->GetOwner();
 		sendingMessage.SendingComponent = this;
 		sendingMessage.OnTrigger = message.OnTrigger;
 		sendingMessage.TargetActor = message.TargetActor;
@@ -142,7 +141,6 @@ void UMessengerComponent::AddMessage(FMessageStruct& Message)
 {
 	Message.ID = FGuid::NewGuid();
 	Message.SendingComponent = this;
-	Message.SendingActor = this->GetOwner();
 
 	MessageEvents.Add(Message);
 
