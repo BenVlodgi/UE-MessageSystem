@@ -2,8 +2,6 @@
 
 #include "MessengerComponent.h"
 
-
-
 // Sets default values for this component's properties
 UMessengerComponent::UMessengerComponent()
 {
@@ -34,13 +32,11 @@ void UMessengerComponent::BeginPlay()
 
 }
 
-
 // Called every frame
 void UMessengerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-
 
 void UMessengerComponent::ReceiveMessage(FMessageStruct Message)
 {
@@ -101,7 +97,6 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 		sendingMessage.Delay = message.Delay;
 		sendingMessage.bCancelIfSenderIsDestroyed = message.bCancelIfSenderIsDestroyed;
 
-
 #if WITH_EDITOR
 		// Transact these so they will be recognized in Undo Buffer.
 		if (messengerComponent) messengerComponent->Modify();
@@ -109,9 +104,6 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 #endif
 
 		bool bHandled = false;
-
-
-
 		//UE_LOG(LogTemp, Verbose, TEXT("BroadcastEvent: '%s. Target: %s. SendEvent: %s'"), sendingMessage.OnTrigger, targetActor->GetName(), sendingMessage.SendEvent);
 
 		// TODO: Try to handle this message Via Interface
@@ -150,7 +142,7 @@ void UMessengerComponent::AddMessage(FMessageStruct& Message)
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->AddMessage(Message);
+			MessageSystemSubsystem->AddMessage(Message, this);
 		}
 	}
 }
@@ -165,7 +157,6 @@ void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 			break;
 		}
 	}
-	//MessageEvents.Remove(Message);
 
 	UWorld* world = GetWorld(); // No world during editor startup
 	if (IsValid(world) && IsValid(GEngine))
@@ -173,7 +164,7 @@ void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->RemoveMessage(Message);
+			MessageSystemSubsystem->RemoveMessage(Message, this);
 		}
 	}
 }
@@ -189,14 +180,13 @@ void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 		}
 	}
 
-
 	UWorld* world = GetWorld(); // No world during editor startup
 	if (IsValid(world) && IsValid(GEngine))
 	{
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->UpdateMessage(Message);
+			MessageSystemSubsystem->UpdateMessage(Message, this);
 		}
 	}
 }

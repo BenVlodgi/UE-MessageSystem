@@ -2,8 +2,6 @@
 
 #pragma once
 
-
-
 //#include "MessengerComponent.h"
 class UMessengerComponent;
 #include "Enums/WorldTypeEnum.h"
@@ -18,14 +16,22 @@ class UMessengerComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessengerComponentDelegate, const UMessengerComponent*, MessengerComponent);
 
- 
 UCLASS()
 class MESSAGESYSTEM_API UMessageSystemSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 
 public:
+	/** Implement this for initialization of instances of the system */
+	void Initialize(FSubsystemCollectionBase& Collection) override;
 
+protected:
+#if WITH_EDITOR
+	void OnLevelActorAdded(AActor* Actor);
+	void OnLevelActorDeleted(AActor* Actor);
+#endif
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
 	TMap<TEnumAsByte<EWorldTypeEnum>, FMessagesCollectionsStruct> MessagesCollectionsByWorld;
 
@@ -34,7 +40,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
 	FMessengerComponentDelegate OnMessengerComponentRemoved;
-
 
 	// Allow MessageSystemComponents to register themselves here. We'll hold soft references to them.
 	// The Display panel will be able to use this registry to create a known list of incomming messages
@@ -46,14 +51,13 @@ public:
 	void MessengerComponentRemoved(UMessengerComponent* MessengerComponent);
 
 	UFUNCTION()
-	void AddMessage(FMessageStruct Message, bool BroadcastUpdate = true);
+	void AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
 
 	UFUNCTION()
-	void RemoveMessage(FMessageStruct Message, bool BroadcastUpdate = true);
+	void RemoveMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
 
 	UFUNCTION()
-	void UpdateMessage(FMessageStruct Message, bool BroadcastUpdate = true);
-
+	void UpdateMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
 
 	EWorldTypeEnum ToWorldTypeEnum(TEnumAsByte<EWorldType::Type> WorldType)
 	{

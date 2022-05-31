@@ -1,8 +1,50 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Engine/Engine.h"
 
 #include "MessageSystemSubsystem.h"
 #include "MessengerComponent.h"
+
+void UMessageSystemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+#if WITH_EDITOR
+	if (GEngine)
+	{
+		GEngine->OnLevelActorAdded().AddLambda([this](AActor* AddedActor) { this->OnLevelActorAdded(AddedActor); });
+		GEngine->OnLevelActorDeleted().AddLambda([this](AActor* DestroyedActor) { this->OnLevelActorDeleted(DestroyedActor); });
+	}
+#endif
+}
+
+#if WITH_EDITOR
+void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
+{
+	if (IsValid(Actor))
+	{
+		TArray<UMessengerComponent*> messengerComponents;
+		Actor->GetComponents<UMessengerComponent>(messengerComponents);
+
+		for (int i = messengerComponents.Num() - 1; i >= 0; i--)
+		{
+			MessengerComponentUpdated(messengerComponents[i]);
+		}
+	}
+}
+
+void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
+{
+	if (IsValid(Actor))
+	{
+		TArray<UMessengerComponent*> messengerComponents;
+		Actor->GetComponents<UMessengerComponent>(messengerComponents);
+		
+		for (int i = messengerComponents.Num() - 1; i >= 0; i--)
+		{
+			MessengerComponentRemoved(messengerComponents[i]);
+		}
+	}
+}
+#endif
 
 void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* MessengerComponent)
 {
@@ -22,7 +64,6 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 				{
 					for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
 					{
-
 						// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
 						if (MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
 						{
@@ -41,7 +82,7 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 						}
 
 						// Add to cache.
-						AddMessage(MessengerComponent->MessageEvents[i], false); // Don't broadcast, we'll handle that.
+						AddMessage(MessengerComponent->MessageEvents[i], MessengerComponent, false); // Don't broadcast, we'll handle that.
 					}
 				}
 				else // If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
@@ -56,7 +97,6 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 			}
 		}
 	}
-
 }
 
 void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* MessengerComponent)
@@ -67,24 +107,24 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 		if (IsValid(world))
 		{
 			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-			FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
-			if (messagesCollections)
+			if (FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType))
 			{
 				// Remove these messages. Reverse because this affects the array we are iterating over
 				for (int i = MessengerComponent->MessageEvents.Num() - 1; i >= 0; i--)
 				{
-					RemoveMessage(MessengerComponent->MessageEvents[i], false); // Don't broadcast, we'll handle that.
+					RemoveMessage(MessengerComponent->MessageEvents[i], MessengerComponent, false); // Don't broadcast, we'll handle that.
 				}
 
+				messagesCollections->AllMessengerComponents.Remove(MessengerComponent); //TODO: Do we want to remove this, or keep it around for fun?
 			}
 		}
 	}
 	OnMessengerComponentRemoved.Broadcast(MessengerComponent);
 }
 
-void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastUpdate)
+void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get();
+	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;
 	if (IsValid(messengerComponent)) // This check may not be nessesary
 	{
 		UWorld* world = messengerComponent->GetWorld();
@@ -115,43 +155,48 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, bool BroadcastU
 	}
 }
 
-void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool BroadcastUpdate)
+void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get(); // Only using this to get the correct world
-
+	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;// Only using this to get the correct world
 	if (IsValid(messengerComponent))
 	{
 		UWorld* world = messengerComponent->GetWorld();
 		if (IsValid(world))
 		{
 			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
-			FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
-
-			if (messagesCollections)
+			if (FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType))
 			{
-
-				FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID);
-
-				//TWeakObjectPtr<UMessengerComponent> cachedSendingComponent;
-				UMessengerComponent* cachedSendingComponent = NULL;
-				if (cachedMessage)
+				if (FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID))
 				{
-					cachedSendingComponent = cachedMessage->SendingComponent;
+					// This could be updated if MessengerComponent sent in null, and the message we looked up had a different component than the struct that was passed in.
+					messengerComponent = MessengerComponent ? MessengerComponent : cachedMessage->SendingComponent;
+
+					// Remove this message from AllMessagesBySender cache
+					if (FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(messengerComponent))
+					{
+						messagesBySender->Array.Remove(Message.ID);
+
+						// if that was the last one, and the list is now empty, we can remove the whole collection
+						if (messagesBySender->Array.Num() == 0)
+						{
+							messagesCollections->AllMessagesBySender.Remove(messengerComponent);
+						}
+					}
+
+					// Remove this message from AllMessagesByReceivingActor cache
+					if (FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(cachedMessage->TargetActor))
+					{
+						messagesByReceivingActor->Array.Remove(Message.ID);
+
+						// if that was the last one, and the list is now empty, we can remove the whole collection
+						if (messagesByReceivingActor->Array.Num() == 0)
+						{
+							messagesCollections->AllMessagesByReceivingActor.Remove(cachedMessage->TargetActor);
+						}
+					}
 				}
 
 				messagesCollections->AllMessages.Remove(Message.ID);
-
-				FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(cachedSendingComponent/*.Get()*/);
-				if (messagesBySender)
-				{
-					messagesBySender->Array.Remove(Message.ID);
-				}
-
-				FGuidArrayStruct* messagesByReceivingActor = messagesCollections->AllMessagesByReceivingActor.Find(cachedMessage->TargetActor);
-				if (messagesByReceivingActor)
-				{
-					messagesByReceivingActor->Array.Remove(Message.ID);
-				}
 			}
 
 			if (BroadcastUpdate)
@@ -162,13 +207,13 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, bool Broadca
 	}
 }
 
-void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, bool BroadcastUpdate)
+void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	const UMessengerComponent* messengerComponent = Message.SendingComponent;// .Get();
+	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;
 	if (IsValid(messengerComponent))
 	{
-		RemoveMessage(Message, false);
-		AddMessage(Message, false);
+		RemoveMessage(Message, MessengerComponent, false);
+		AddMessage(Message, MessengerComponent, false);
 
 		if (BroadcastUpdate)
 		{

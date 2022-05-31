@@ -13,13 +13,10 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FReceiveMessageDelegate, UMessengerComponent*, DeliveringComponent, FMessageStruct, Message);
 
-
-
 UCLASS(Blueprintable, ClassGroup=(MessageSystem), meta=(BlueprintSpawnableComponent))
 class MESSAGESYSTEM_API UMessengerComponent : public UActorComponent
 {
 	GENERATED_BODY()
-
 
 public:
 	// Broadcast these messages when event is triggered.
@@ -40,7 +37,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
 	FReceiveMessageDelegate OnReceiveMessage;
 
-	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -61,8 +57,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
 	void SendMessage(AActor* TargetActor, FName SendEvent, FMessageParametersStruct TriggerParameters);
 
-
-
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	void AddMessage(FMessageStruct& Message);
 
@@ -74,20 +68,6 @@ public:
 	
 	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	//void RemoveMessageByID(FGuid ID);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
