@@ -19,6 +19,7 @@ void UMessageSystemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if WITH_EDITOR
 void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
 {
+	return;
 	if (IsValid(Actor))
 	{
 		TArray<UMessengerComponent*> messengerComponents;
@@ -26,13 +27,14 @@ void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
 
 		for (int i = messengerComponents.Num() - 1; i >= 0; i--)
 		{
-			MessengerComponentUpdated(messengerComponents[i]);
+			MessengerComponentAdded(messengerComponents[i], true);
 		}
 	}
 }
 
 void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 {
+	//return;
 	if (IsValid(Actor))
 	{
 		TArray<UMessengerComponent*> messengerComponents;
@@ -46,7 +48,8 @@ void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 }
 #endif
 
-void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* MessengerComponent)
+
+void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* MessengerComponent, bool GiveMessagesNewID)
 {
 	if (IsValid(MessengerComponent))
 	{
@@ -65,18 +68,18 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 					for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
 					{
 						// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
-						if (MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
+						if (GiveMessagesNewID)
 						{
-							MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
+							//MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
 
 							// This component/actor was likely copied which is why the sender didn't match.
 							// We will get a new ID for our message, so it won't have the same ID as its copy-source.
 							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid();
+							
 						}
-
 						// If this has a bad Guid, lets generate a new one.
 						// This could happen if someone added the event manually to the component.
-						if (!MessengerComponent->MessageEvents[i].ID.IsValid())
+						else if (!MessengerComponent->MessageEvents[i].ID.IsValid())
 						{
 							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid(); // bbbb <-- Annette typed those
 						}
@@ -99,6 +102,60 @@ void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* Mes
 	}
 }
 
+void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* MessengerComponent)
+{
+	MessengerComponentAdded(MessengerComponent, false);
+	//if (IsValid(MessengerComponent))
+	//{
+	//	UWorld* world = MessengerComponent->GetWorld();
+	//	if (IsValid(world))
+	//	{
+	//		EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+	//		FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
+	//
+	//		//Only do this once, the first time the component is modified. This will also happen in a newly duplicated actor/component
+	//		int index = messagesCollections.AllMessengerComponents.Find(MessengerComponent);
+	//		if (index < 0)
+	//		{
+	//			if (MessengerComponent->MessageEvents.Num() > 0)
+	//			{
+	//				for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
+	//				{
+	//					//// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
+	//					//if (MessengerComponent->MessageEvents[i].SendingComponent != MessengerComponent)
+	//					//{
+	//					//	MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
+	//					//
+	//					//	// This component/actor was likely copied which is why the sender didn't match.
+	//					//	// We will get a new ID for our message, so it won't have the same ID as its copy-source.
+	//					//	MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid();
+	//					//}
+	//
+	//					// If this has a bad Guid, lets generate a new one.
+	//					// This could happen if someone added the event manually to the component.
+	//					if (!MessengerComponent->MessageEvents[i].ID.IsValid())
+	//					{
+	//						MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid(); // bbbb <-- Annette typed those
+	//					}
+	//
+	//					// Add to cache.
+	//					AddMessage(MessengerComponent->MessageEvents[i], MessengerComponent, false); // Don't broadcast, we'll handle that.
+	//				}
+	//			}
+	//			else // If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
+	//			{
+	//				messagesCollections.AllMessengerComponents.AddUnique(MessengerComponent);
+	//
+	//				// Ensure to commit changes made here
+	//				MessagesCollectionsByWorld.Add(worldType, messagesCollections);
+	//			}
+	//
+	//			OnMessengerComponentUpdated.Broadcast(MessengerComponent);
+	//		}
+	//	}
+	//}
+}
+
 void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* MessengerComponent)
 {
 	if (IsValid(MessengerComponent))
@@ -116,9 +173,12 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 				}
 
 				messagesCollections->AllMessengerComponents.Remove(MessengerComponent); //TODO: Do we want to remove this, or keep it around for fun?
+				FMessagesCollectionsStruct messagesCollectionsValue = *messagesCollections;
+				MessagesCollectionsByWorld.Add(worldType, messagesCollectionsValue);
 			}
 		}
 	}
+
 	OnMessengerComponentRemoved.Broadcast(MessengerComponent);
 }
 
@@ -142,7 +202,7 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerCompo
 			FGuidArrayStruct messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(Message.TargetActor);
 			messagesByReceivingActor.Array.AddUnique(Message.ID);
 
-			// Ensure to commit changes made here
+			// Commit Struct Updates
 			messagesCollections.AllMessagesBySender.Add(messengerComponent, messagesBySender);
 			messagesCollections.AllMessagesByReceivingActor.Add(Message.TargetActor, messagesByReceivingActor);
 			MessagesCollectionsByWorld.Add(worldType, messagesCollections);
@@ -181,6 +241,11 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 						{
 							messagesCollections->AllMessagesBySender.Remove(messengerComponent);
 						}
+						else
+						{
+							// Commit Struct Updates (Do I need to? This was a pointer.)
+							messagesCollections->AllMessagesBySender.Add(messengerComponent, *messagesBySender);
+						}
 					}
 
 					// Remove this message from AllMessagesByReceivingActor cache
@@ -193,10 +258,20 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 						{
 							messagesCollections->AllMessagesByReceivingActor.Remove(cachedMessage->TargetActor);
 						}
+						else
+						{
+							// Commit Struct Updates (Do I need to? This was a pointer.)
+							messagesCollections->AllMessagesByReceivingActor.Add(cachedMessage->TargetActor, *messagesByReceivingActor);
+						}
 					}
 				}
 
 				messagesCollections->AllMessages.Remove(Message.ID);
+
+				FMessagesCollectionsStruct messagesCollectionsValue = *messagesCollections;
+
+				// Commit Struct Updates (Do I need to? This was a pointer.)
+				MessagesCollectionsByWorld.Add(worldType, messagesCollectionsValue);
 			}
 
 			if (BroadcastUpdate)

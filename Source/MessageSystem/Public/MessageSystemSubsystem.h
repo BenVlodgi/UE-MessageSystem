@@ -41,9 +41,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
 	FMessengerComponentDelegate OnMessengerComponentRemoved;
 
+
 	// Allow MessageSystemComponents to register themselves here. We'll hold soft references to them.
 	// The Display panel will be able to use this registry to create a known list of incomming messages
 	// for components (useful because only the outgoing message is actually stored on a component).
+
+	UFUNCTION()
+	void MessengerComponentAdded(UMessengerComponent* MessengerComponent, bool GiveMessagesNewID = true);
+
 	UFUNCTION()
 	void MessengerComponentUpdated(UMessengerComponent* MessengerComponent);
 

@@ -202,12 +202,34 @@ void UMessengerComponent::OnRegister()
 {
 	Super::OnRegister();
 	UE_LOG(LogTemp, Warning, TEXT("Called: OnRegister"));
+	TArray<FMessageStruct> messageEvents = MessageEvents;
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->MessengerComponentAdded(this, true);
+		}
+	}
 }
 
 void UMessengerComponent::OnUnregister()
 {
 	Super::OnUnregister();
 	UE_LOG(LogTemp, Warning, TEXT("Called: OnUnregister"));
+	TArray<FMessageStruct> messageEvents = MessageEvents;
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->MessengerComponentRemoved(this);
+		}
+	}
 }
 
 void UMessengerComponent::PostInitProperties()
@@ -220,6 +242,61 @@ void UMessengerComponent::PostLoad()
 {
 	Super::PostLoad();
 	UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
+}
+
+void UMessengerComponent::OnComponentCreated()
+{
+	return;
+	Super::OnComponentCreated();
+	UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentCreated"));
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->MessengerComponentAdded(this, true);
+		}
+	}
+}
+
+void UMessengerComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	return;
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentDestroyed"));
+
+
+	UWorld* world = GetWorld(); // No world during editor startup
+	if (IsValid(world) && IsValid(GEngine))
+	{
+		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+		if (IsValid(MessageSystemSubsystem))
+		{
+			MessageSystemSubsystem->MessengerComponentRemoved(this);
+		}
+	}
+}
+
+//void UMessengerComponent::DetermineUCSModifiedProperties()
+//{
+//	Super::DetermineUCSModifiedProperties();
+//	UE_LOG(LogTemp, Warning, TEXT("Called: DetermineUCSModifiedProperties"));
+//	TArray<FMessageStruct> messageEvents = MessageEvents;
+//}
+
+bool UMessengerComponent::Rename(const TCHAR* NewName, UObject* NewOuter, ERenameFlags Flags)
+{
+	bool returnValue = Super::Rename(NewName, NewOuter, Flags);
+	UE_LOG(LogTemp, Warning, TEXT("Called: Rename: NewName:'%s'"), NewName);
+	return returnValue;
+}
+
+void UMessengerComponent::PostRename(UObject* OldOuter, const FName OldName)
+{
+	Super::PostRename(OldOuter, OldName);
+	UE_LOG(LogTemp, Warning, TEXT("Called: PostRename: OldName:'%s'"), &OldName);
 }
 
 #if WITH_EDITOR
@@ -236,7 +313,7 @@ bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->MessengerComponentUpdated(this);
+			//MessageSystemSubsystem->MessengerComponentUpdated(this);
 		}
 	}
 
