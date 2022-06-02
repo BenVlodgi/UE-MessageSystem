@@ -19,21 +19,23 @@ void UMessageSystemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if WITH_EDITOR
 void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorAdded: %s"), *Actor->GetName());
 	return;
-	if (IsValid(Actor))
-	{
-		TArray<UMessengerComponent*> messengerComponents;
-		Actor->GetComponents<UMessengerComponent>(messengerComponents);
-
-		for (int i = messengerComponents.Num() - 1; i >= 0; i--)
-		{
-			MessengerComponentAdded(messengerComponents[i], true);
-		}
-	}
+	//if (IsValid(Actor))
+	//{
+	//	TArray<UMessengerComponent*> messengerComponents;
+	//	Actor->GetComponents<UMessengerComponent>(messengerComponents);
+	//
+	//	for (int i = messengerComponents.Num() - 1; i >= 0; i--)
+	//	{
+	//		QueueMessengerComponentAdded(messengerComponents[i]);
+	//	}
+	//}
 }
 
 void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorDeleted: %s"), *Actor->GetName());
 	//return;
 	if (IsValid(Actor))
 	{
@@ -48,8 +50,79 @@ void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 }
 #endif
 
+void UMessageSystemSubsystem::QueueMessengerComponentAdded(UMessengerComponent* MessengerComponent)
+{
+	if (IsValid(MessengerComponent))
+	{
+		UWorld* world = MessengerComponent->GetWorld();
 
-void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* MessengerComponent, bool GiveMessagesNewID)
+		if (IsValid(world))
+		{
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
+
+			messagesCollections.PendingAddMessengerComponent.AddUnique(MessengerComponent);
+			messagesCollections.PendingRemoveMessengerComponent.Remove(MessengerComponent);
+
+			MessagesCollectionsByWorld.Add(worldType, messagesCollections);
+
+			//world->GetTimerManager().SetTimer(TimerHandle, this, &UMessageSystemSubsystem::ProcessPendingMessageComponentsAddedRemoved, 0.1, false);
+			FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(this, &UMessageSystemSubsystem::ProcessPendingMessageComponentsAddedRemoved, worldType);
+			world->GetTimerManager().SetTimer(UMessageSystemSubsystem::ProcessPending_TimerHandle, TimerDelegate, ProcessPending_WaitTime, false);
+		}
+	}
+}
+
+void UMessageSystemSubsystem::QueueMessengerComponentRemoved(UMessengerComponent* MessengerComponent)
+{
+	if (IsValid(MessengerComponent))
+	{
+		UWorld* world = MessengerComponent->GetWorld();
+
+		if (IsValid(world))
+		{
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
+
+			messagesCollections.PendingRemoveMessengerComponent.AddUnique(MessengerComponent);
+			messagesCollections.PendingAddMessengerComponent.Remove(MessengerComponent);
+
+			MessagesCollectionsByWorld.Add(worldType, messagesCollections);
+
+			//world->GetTimerManager().SetTimer(TimerHandle, this, &UMessageSystemSubsystem::ProcessPendingMessageComponentsAddedRemoved, 0.1, false);
+			FTimerDelegate TimerDelegate = FTimerDelegate::CreateUObject(this, &UMessageSystemSubsystem::ProcessPendingMessageComponentsAddedRemoved, worldType);
+			world->GetTimerManager().SetTimer(UMessageSystemSubsystem::ProcessPending_TimerHandle, TimerDelegate, ProcessPending_WaitTime, false);
+		}
+	}
+}
+
+void UMessageSystemSubsystem::ProcessPendingMessageComponentsAddedRemoved(EWorldTypeEnum worldType)
+{
+	// Dragging actor in editor causes ~3 component registration + unregistrations per tick
+	// This lags hard, and its for no good, we only care about the end state of a component existing or not.
+	// So we wait until there's been no added or removed components for a period of time before updating.
+
+	FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType);
+
+	if (messagesCollections)
+	{
+		for (int i = messagesCollections->PendingRemoveMessengerComponent.Num() - 1; i >= 0; i--)
+		{
+			MessengerComponentRemoved(messagesCollections->PendingRemoveMessengerComponent[i].Get());
+			messagesCollections->PendingRemoveMessengerComponent.RemoveAt(i);
+		}
+
+		for (int i = messagesCollections->PendingAddMessengerComponent.Num() - 1; i >= 0; i--)
+		{
+			MessengerComponentAdded(messagesCollections->PendingAddMessengerComponent[i].Get());
+			messagesCollections->PendingAddMessengerComponent.RemoveAt(i);
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Called: ProcessPendingMessageComponentsAddedRemoved"));
+}
+
+void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* MessengerComponent)
 {
 	if (IsValid(MessengerComponent))
 	{
@@ -67,19 +140,18 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 				{
 					for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
 					{
-						// The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
-						if (GiveMessagesNewID)
+						bool local_GiveMessagesNewID = false;
+						FMessageStruct* existingMessage = messagesCollections.AllMessages.Find(MessengerComponent->MessageEvents[i].ID);
+						if (existingMessage && existingMessage->SendingComponent != MessengerComponent)
 						{
-							//MessengerComponent->MessageEvents[i].SendingComponent = MessengerComponent;
-
-							// This component/actor was likely copied which is why the sender didn't match.
-							// We will get a new ID for our message, so it won't have the same ID as its copy-source.
-							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid();
-							
+							local_GiveMessagesNewID = true;
 						}
-						// If this has a bad Guid, lets generate a new one.
-						// This could happen if someone added the event manually to the component.
-						else if (!MessengerComponent->MessageEvents[i].ID.IsValid())
+
+						
+						if (local_GiveMessagesNewID // The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
+							//|| GiveMessagesNewID 
+							|| !MessengerComponent->MessageEvents[i].ID.IsValid() // If this has a bad Guid, lets generate a new one. This could happen if someone added the event manually to the component.
+							)
 						{
 							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid(); // bbbb <-- Annette typed those
 						}
@@ -104,7 +176,7 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 
 void UMessageSystemSubsystem::MessengerComponentUpdated(UMessengerComponent* MessengerComponent)
 {
-	MessengerComponentAdded(MessengerComponent, false);
+	MessengerComponentAdded(MessengerComponent);
 	//if (IsValid(MessengerComponent))
 	//{
 	//	UWorld* world = MessengerComponent->GetWorld();
@@ -193,6 +265,12 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerCompo
 			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
 			FMessagesCollectionsStruct messagesCollections = MessagesCollectionsByWorld.FindOrAdd(worldType);
 
+			// Cache the sending component internally. We want to know this in the menu, but can't store
+			// it in the struct that is on the actor because it creates a cyclical reference which is 
+			// annoying when wanting to delete the actor.
+			// But we can cache it here.
+			Message.SendingComponent = MessengerComponent;
+
 			messagesCollections.AllMessengerComponents.AddUnique(messengerComponent);
 			messagesCollections.AllMessages.Add(Message.ID, Message);
 
@@ -217,7 +295,7 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerCompo
 
 void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;// Only using this to get the correct world
+	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;// Using this to get the correct world
 	if (IsValid(messengerComponent))
 	{
 		UWorld* world = messengerComponent->GetWorld();
@@ -228,6 +306,13 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 			{
 				if (FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID))
 				{
+					if (IsValid(MessengerComponent) && MessengerComponent != cachedMessage->SendingComponent)
+					{
+						// If the component that was sent in was valid, and not the same as the cached sender, then we shouldn't remove this message.
+						// This can happen when the component is duplicated, and it would try to unregister the template's components.
+						return;
+					}
+
 					// This could be updated if MessengerComponent sent in null, and the message we looked up had a different component than the struct that was passed in.
 					messengerComponent = MessengerComponent ? MessengerComponent : cachedMessage->SendingComponent;
 

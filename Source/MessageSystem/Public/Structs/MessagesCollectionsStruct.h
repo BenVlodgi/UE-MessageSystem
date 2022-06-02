@@ -14,17 +14,25 @@ USTRUCT(BlueprintType, Category = "Message System|Organization")
 struct MESSAGESYSTEM_API FMessagesCollectionsStruct
 {
 	GENERATED_BODY()
+	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
-	TArray<TSoftObjectPtr<UMessengerComponent>> AllMessengerComponents;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization")
 	TMap<FGuid, FMessageStruct> AllMessages;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization")
 	TMap<TSoftObjectPtr<UMessengerComponent>, FGuidArrayStruct> AllMessagesBySender;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Organization")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization")
 	TMap<TSoftObjectPtr<AActor>, FGuidArrayStruct> AllMessagesByReceivingActor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization")
+	TArray<TSoftObjectPtr<UMessengerComponent>> AllMessengerComponents;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization", AdvancedDisplay)
+	TArray<TSoftObjectPtr<UMessengerComponent>> PendingAddMessengerComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization", AdvancedDisplay)
+	TArray<TSoftObjectPtr<UMessengerComponent>> PendingRemoveMessengerComponent;
+
 
 };

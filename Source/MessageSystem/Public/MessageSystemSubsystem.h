@@ -41,13 +41,27 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
 	FMessengerComponentDelegate OnMessengerComponentRemoved;
 
+	float ProcessPending_WaitTime = 0.1;
+	FTimerHandle ProcessPending_TimerHandle;
+
 
 	// Allow MessageSystemComponents to register themselves here. We'll hold soft references to them.
 	// The Display panel will be able to use this registry to create a known list of incomming messages
 	// for components (useful because only the outgoing message is actually stored on a component).
 
+
+
 	UFUNCTION()
-	void MessengerComponentAdded(UMessengerComponent* MessengerComponent, bool GiveMessagesNewID = true);
+	void QueueMessengerComponentAdded(UMessengerComponent* MessengerComponent);
+
+	UFUNCTION()
+	void QueueMessengerComponentRemoved(UMessengerComponent* MessengerComponent);
+
+	UFUNCTION()
+	void ProcessPendingMessageComponentsAddedRemoved(EWorldTypeEnum worldType);
+
+	UFUNCTION()
+	void MessengerComponentAdded(UMessengerComponent* MessengerComponent);
 
 	UFUNCTION()
 	void MessengerComponentUpdated(UMessengerComponent* MessengerComponent);

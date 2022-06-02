@@ -8,6 +8,12 @@ UMessengerComponent::UMessengerComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+
+	UBlueprint* Blueprint = Cast<UBlueprint>(GetClass()->ClassGeneratedBy);
+	if (Blueprint)
+	{
+		Blueprint->bRunConstructionScriptOnDrag = false; // Unsure if this has an effect. If it does its good.
+	}
 }
 
 // TODO, implement some registering with the sub system.
@@ -29,7 +35,6 @@ UMessengerComponent::UMessengerComponent()
 void UMessengerComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -195,13 +200,14 @@ void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 void UMessengerComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	UE_LOG(LogTemp, Warning, TEXT("Called: InitializeComponent"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: InitializeComponent"));
 }
 
 void UMessengerComponent::OnRegister()
 {
 	Super::OnRegister();
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnRegister"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnRegister"));
+
 	TArray<FMessageStruct> messageEvents = MessageEvents;
 
 	UWorld* world = GetWorld(); // No world during editor startup
@@ -210,7 +216,7 @@ void UMessengerComponent::OnRegister()
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->MessengerComponentAdded(this, true);
+			MessageSystemSubsystem->QueueMessengerComponentAdded(this);
 		}
 	}
 }
@@ -218,7 +224,8 @@ void UMessengerComponent::OnRegister()
 void UMessengerComponent::OnUnregister()
 {
 	Super::OnUnregister();
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnUnregister"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnUnregister"));
+
 	TArray<FMessageStruct> messageEvents = MessageEvents;
 
 	UWorld* world = GetWorld(); // No world during editor startup
@@ -227,7 +234,7 @@ void UMessengerComponent::OnUnregister()
 		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
 		if (IsValid(MessageSystemSubsystem))
 		{
-			MessageSystemSubsystem->MessengerComponentRemoved(this);
+			MessageSystemSubsystem->QueueMessengerComponentRemoved(this);
 		}
 	}
 }
@@ -235,48 +242,46 @@ void UMessengerComponent::OnUnregister()
 void UMessengerComponent::PostInitProperties()
 {
 	Super::PostInitProperties();
-	UE_LOG(LogTemp, Warning, TEXT("Called: PostInitProperties"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: PostInitProperties"));
 }
 
 void UMessengerComponent::PostLoad()
 {
 	Super::PostLoad();
-	UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
 }
 
 void UMessengerComponent::OnComponentCreated()
 {
-	return;
 	Super::OnComponentCreated();
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentCreated"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentCreated"));
 
-	UWorld* world = GetWorld(); // No world during editor startup
-	if (IsValid(world) && IsValid(GEngine))
-	{
-		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
-		if (IsValid(MessageSystemSubsystem))
-		{
-			MessageSystemSubsystem->MessengerComponentAdded(this, true);
-		}
-	}
+	//UWorld* world = GetWorld(); // No world during editor startup
+	//if (IsValid(world) && IsValid(GEngine))
+	//{
+	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+	//	if (IsValid(MessageSystemSubsystem))
+	//	{
+	//		QueueMessageSystemSubsystem->MessengerComponentAdded(this);
+	//	}
+	//}
 }
 
 void UMessengerComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 {
-	return;
 	Super::OnComponentDestroyed(bDestroyingHierarchy);
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentDestroyed"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentDestroyed"));
 
 
-	UWorld* world = GetWorld(); // No world during editor startup
-	if (IsValid(world) && IsValid(GEngine))
-	{
-		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
-		if (IsValid(MessageSystemSubsystem))
-		{
-			MessageSystemSubsystem->MessengerComponentRemoved(this);
-		}
-	}
+	//UWorld* world = GetWorld(); // No world during editor startup
+	//if (IsValid(world) && IsValid(GEngine))
+	//{
+	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+	//	if (IsValid(MessageSystemSubsystem))
+	//	{
+	//		MessageSystemSubsystem->MessengerComponentRemoved(this);
+	//	}
+	//}
 }
 
 //void UMessengerComponent::DetermineUCSModifiedProperties()
@@ -289,33 +294,21 @@ void UMessengerComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
 bool UMessengerComponent::Rename(const TCHAR* NewName, UObject* NewOuter, ERenameFlags Flags)
 {
 	bool returnValue = Super::Rename(NewName, NewOuter, Flags);
-	UE_LOG(LogTemp, Warning, TEXT("Called: Rename: NewName:'%s'"), NewName);
+	//UE_LOG(LogTemp, Warning, TEXT("Called: Rename: NewName:'%s'"), NewName);
 	return returnValue;
 }
 
 void UMessengerComponent::PostRename(UObject* OldOuter, const FName OldName)
 {
 	Super::PostRename(OldOuter, OldName);
-	UE_LOG(LogTemp, Warning, TEXT("Called: PostRename: OldName:'%s'"), &OldName);
+	//UE_LOG(LogTemp, Warning, TEXT("Called: PostRename: OldName:'%s'"), *OldName.ToString());
 }
 
 #if WITH_EDITOR
 bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
 {
 	bool returnValue = Super::Modify(bAlwaysMarkDirty);
-	UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
-
-	// Update Engine registry of all these components
-
-	UWorld* world = GetWorld(); // No world during editor startup
-	if (IsValid(world) && IsValid(GEngine))
-	{
-		UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
-		if (IsValid(MessageSystemSubsystem))
-		{
-			//MessageSystemSubsystem->MessengerComponentUpdated(this);
-		}
-	}
+	//UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
 
 	return returnValue;
 }
@@ -323,12 +316,12 @@ bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
 void UMessengerComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeProperty"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeProperty"));
 }
 
 void UMessengerComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeChainProperty"));
+	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeChainProperty"));
 }
 #endif

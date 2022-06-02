@@ -33,6 +33,16 @@ struct MESSAGESYSTEM_API FMessageStruct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FMessageParametersStruct TriggerParameters;
 
+	// TODO: Enum
+	// Message Target Type
+	// -1: Default
+	//  0: Actor
+	//  1: Component
+	//  2: Global
+	//  3: System
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	int TargetType = -1;
+
 	// Send this message to this actor.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	TSoftObjectPtr<AActor> TargetActor;
