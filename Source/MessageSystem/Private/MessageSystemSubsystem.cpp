@@ -19,7 +19,7 @@ void UMessageSystemSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if WITH_EDITOR
 void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorAdded: %s"), *Actor->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorAdded: %s"), *Actor->GetName());
 	return;
 	//if (IsValid(Actor))
 	//{
@@ -35,7 +35,7 @@ void UMessageSystemSubsystem::OnLevelActorAdded(AActor* Actor)
 
 void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorDeleted: %s"), *Actor->GetName());
+	//UE_LOG(LogTemp, Warning, TEXT("Called: OnLevelActorDeleted: %s"), *Actor->GetName());
 	//return;
 	if (IsValid(Actor))
 	{
@@ -144,7 +144,7 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 
 						// SendingComponent != MessengerComponent : The actor may have been duplicated, and the same message ID will be pointing to the previous senders, we need to use a new ID.
 						// !ID.IsValid()                          : If this has a bad Guid, lets generate a new one. This could happen if someone added the event manually to the component.
-						if (existingMessage && existingMessage->SendingComponent != MessengerComponent
+						if (existingMessage && existingMessage->SendingComponent.Get() != MessengerComponent
 							|| !MessengerComponent->MessageEvents[i].ID.IsValid()
 							)
 						{
@@ -252,7 +252,7 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 
 void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;
+	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();
 	if (IsValid(messengerComponent)) // This check may not be nessesary
 	{
 		UWorld* world = messengerComponent->GetWorld();
@@ -291,7 +291,7 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerCompo
 
 void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;// Using this to get the correct world
+	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();// Using this to get the correct world
 	if (IsValid(messengerComponent))
 	{
 		UWorld* world = messengerComponent->GetWorld();
@@ -302,7 +302,7 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 			{
 				if (FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID))
 				{
-					if (IsValid(MessengerComponent) && MessengerComponent != cachedMessage->SendingComponent)
+					if (IsValid(MessengerComponent) && MessengerComponent != cachedMessage->SendingComponent.Get())
 					{
 						// If the component that was sent in was valid, and not the same as the cached sender, then we shouldn't remove this message.
 						// This can happen when the component is duplicated, and it would try to unregister the template's components.
@@ -310,7 +310,7 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 					}
 
 					// This could be updated if MessengerComponent sent in null, and the message we looked up had a different component than the struct that was passed in.
-					messengerComponent = MessengerComponent ? MessengerComponent : cachedMessage->SendingComponent;
+					messengerComponent = MessengerComponent ? MessengerComponent : cachedMessage->SendingComponent.Get();
 
 					// Remove this message from AllMessagesBySender cache
 					if (FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(messengerComponent))
@@ -365,7 +365,7 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 
 void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
-	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent;
+	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();
 	if (IsValid(messengerComponent))
 	{
 		RemoveMessage(Message, MessengerComponent, false);

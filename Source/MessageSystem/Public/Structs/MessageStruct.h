@@ -22,8 +22,7 @@ struct MESSAGESYSTEM_API FMessageStruct
 
 	// Component who sent/broadcast this message
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	//TWeakObjectPtr<UMessengerComponent> SendingComponent;
-	UMessengerComponent* SendingComponent; // TODO: Make this soft again. And don't populate this until sent. When removing a message from subsystem pass along the holder.
+	TSoftObjectPtr<UMessengerComponent> SendingComponent;
 
 	// Name of triggering event on sending component/actor. The reason this message is being sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
