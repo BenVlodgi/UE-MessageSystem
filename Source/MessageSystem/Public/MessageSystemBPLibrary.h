@@ -9,6 +9,7 @@
 
 
 
+#include "Enums/WorldTypeEnum.h"
 #include "Structs/MessageParametersStruct.h"
 #include "Structs/MessageStruct.h"
 
@@ -62,6 +63,9 @@ class UMessageSystemBPLibrary : public UBlueprintFunctionLibrary
 
 	UFUNCTION(BlueprintPure, Category = "MessageSystem")
 	static FString MessageToString(FMessageStruct Message);
+
+	UFUNCTION(BlueprintPure, Category = "MessageSystem", meta=(DefaultToSelf = "Object"))
+	static EWorldTypeEnum GetWorldType(UObject* Object);
 
 
 

@@ -262,6 +262,26 @@ FString UMessageSystemBPLibrary::MessageToString(FMessageStruct message)
 	//);
 }
 
+EWorldTypeEnum UMessageSystemBPLibrary::GetWorldType(UObject* Object)
+{
+	if (IsValid(Object))
+	{
+		switch (Object->GetWorld()->WorldType)
+		{
+			case EWorldType::None: return EWorldTypeEnum::None;
+			case EWorldType::Game: return EWorldTypeEnum::Game;
+			case EWorldType::Editor: return EWorldTypeEnum::Editor;
+			case EWorldType::PIE: return EWorldTypeEnum::PIE;
+			case EWorldType::EditorPreview: return EWorldTypeEnum::EditorPreview;
+			case EWorldType::GamePreview: return EWorldTypeEnum::GamePreview;
+			case EWorldType::GameRPC: return EWorldTypeEnum::GameRPC;
+			case EWorldType::Inactive: return EWorldTypeEnum::Inactive;
+		}
+	}
+
+	return EWorldTypeEnum::None;
+}
+
 /*
 void UMessageSystemBPLibrary::GetClassFunctionPropertyDefaultValue (const UClass* Class, FString FunctionName, TArray<FString>& PropertyNames)
 {
