@@ -140,17 +140,12 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 				{
 					for (int i = 0; i < MessengerComponent->MessageEvents.Num(); i++)
 					{
-						bool local_GiveMessagesNewID = false;
 						FMessageStruct* existingMessage = messagesCollections.AllMessages.Find(MessengerComponent->MessageEvents[i].ID);
-						if (existingMessage && existingMessage->SendingComponent != MessengerComponent)
-						{
-							local_GiveMessagesNewID = true;
-						}
 
-						
-						if (local_GiveMessagesNewID // The actor may have been duplicated, and its messages will be pointing to the previous senders, we need to update those.
-							//|| GiveMessagesNewID 
-							|| !MessengerComponent->MessageEvents[i].ID.IsValid() // If this has a bad Guid, lets generate a new one. This could happen if someone added the event manually to the component.
+						// SendingComponent != MessengerComponent : The actor may have been duplicated, and the same message ID will be pointing to the previous senders, we need to use a new ID.
+						// !ID.IsValid()                          : If this has a bad Guid, lets generate a new one. This could happen if someone added the event manually to the component.
+						if (existingMessage && existingMessage->SendingComponent != MessengerComponent
+							|| !MessengerComponent->MessageEvents[i].ID.IsValid()
 							)
 						{
 							MessengerComponent->MessageEvents[i].ID = FGuid::NewGuid(); // bbbb <-- Annette typed those
@@ -160,8 +155,9 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 						AddMessage(MessengerComponent->MessageEvents[i], MessengerComponent, false); // Don't broadcast, we'll handle that.
 					}
 				}
-				else // If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
+				else 
 				{
+					// If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
 					messagesCollections.AllMessengerComponents.AddUnique(MessengerComponent);
 
 					// Ensure to commit changes made here
