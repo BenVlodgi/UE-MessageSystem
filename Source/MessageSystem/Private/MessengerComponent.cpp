@@ -137,7 +137,7 @@ void UMessengerComponent::SendMessage(AActor* TargetActor, FName SendEvent, FMes
 void UMessengerComponent::AddMessage(FMessageStruct& Message)
 {
 	Message.ID = FGuid::NewGuid();
-	Message.SendingComponent = this;
+	//Message.SendingComponent = this; // Don't set sending component until message is sent. Soft references will get in the way when trying to delete the owning actor.
 
 	MessageEvents.Add(Message);
 
