@@ -38,15 +38,15 @@ public:
 	FReceiveMessageDelegate OnReceiveMessage;
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
+	//// Called when the game starts
+	//virtual void BeginPlay() override;
 
 public:
 	// Sets default values for this component's properties
 	UMessengerComponent();
 
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//// Called every frame
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
 	void ReceiveMessage(FMessageStruct Message);
@@ -86,21 +86,21 @@ protected:
 	void OnRegister() override; // Called when a component is registered, after Scene is set, but before CreateRenderState_Concurrent or OnCreatePhysicsState are called.
 	void OnUnregister() override; // Called when a component is unregistered. Called after DestroyRenderState_Concurrent and OnDestroyPhysicsState are called.
 
-public:
-	void InitializeComponent() override;
-	void PostInitProperties() override; // Called after the C++ constructor and after the properties have been initialized, including those loaded from config. // This is called first When added or begin play happens. 
-	void PostLoad() override;
-	void OnComponentCreated() override;
-	void OnComponentDestroyed(bool bDestroyingHierarchy) override;
-
-	//void DetermineUCSModifiedProperties() override; // Initializes the list of properties that are modified by the UserConstructionScript
-	bool Rename(const TCHAR* NewName = NULL, UObject* NewOuter = NULL, ERenameFlags Flags = REN_None) override;
-	void PostRename(UObject* OldOuter, const FName OldName) override;
-
-#if WITH_EDITOR
-	bool Modify(bool bAlwaysMarkDirty = true) override; // That the object will be modified. If we are currently recording into the transaction buffer (undo/redo), save a copy of this object into the buffer and marks the package as needing to be saved.// This is called second When added or begin play happens. 
-	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
-#endif
+//public:
+//	void InitializeComponent() override;
+//	void PostInitProperties() override; // Called after the C++ constructor and after the properties have been initialized, including those loaded from config. // This is called first When added or begin play happens. 
+//	void PostLoad() override;
+//	void OnComponentCreated() override;
+//	void OnComponentDestroyed(bool bDestroyingHierarchy) override;
+//
+//	//void DetermineUCSModifiedProperties() override; // Initializes the list of properties that are modified by the UserConstructionScript
+//	bool Rename(const TCHAR* NewName = NULL, UObject* NewOuter = NULL, ERenameFlags Flags = REN_None) override;
+//	void PostRename(UObject* OldOuter, const FName OldName) override;
+//
+//#if WITH_EDITOR
+//	bool Modify(bool bAlwaysMarkDirty = true) override; // That the object will be modified. If we are currently recording into the transaction buffer (undo/redo), save a copy of this object into the buffer and marks the package as needing to be saved.// This is called second When added or begin play happens. 
+//	void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+//	void PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent) override;
+//#endif
 
 };

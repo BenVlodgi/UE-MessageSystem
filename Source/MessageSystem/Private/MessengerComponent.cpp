@@ -31,17 +31,17 @@ UMessengerComponent::UMessengerComponent()
 
 
 
-// Called when the game starts
-void UMessengerComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-// Called every frame
-void UMessengerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
+//// Called when the game starts
+//void UMessengerComponent::BeginPlay()
+//{
+//	Super::BeginPlay();
+//}
+//
+//// Called every frame
+//void UMessengerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+//{
+//	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+//}
 
 void UMessengerComponent::ReceiveMessage(FMessageStruct Message)
 {
@@ -197,11 +197,11 @@ void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 }
 
 
-void UMessengerComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-	//UE_LOG(LogTemp, Warning, TEXT("Called: InitializeComponent"));
-}
+//void UMessengerComponent::InitializeComponent()
+//{
+//	Super::InitializeComponent();
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: InitializeComponent"));
+//}
 
 void UMessengerComponent::OnRegister()
 {
@@ -239,89 +239,89 @@ void UMessengerComponent::OnUnregister()
 	}
 }
 
-void UMessengerComponent::PostInitProperties()
-{
-	Super::PostInitProperties();
-	//UE_LOG(LogTemp, Warning, TEXT("Called: PostInitProperties"));
-}
-
-void UMessengerComponent::PostLoad()
-{
-	Super::PostLoad();
-	//UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
-}
-
-void UMessengerComponent::OnComponentCreated()
-{
-	Super::OnComponentCreated();
-	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentCreated"));
-
-	//UWorld* world = GetWorld(); // No world during editor startup
-	//if (IsValid(world) && IsValid(GEngine))
-	//{
-	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
-	//	if (IsValid(MessageSystemSubsystem))
-	//	{
-	//		QueueMessageSystemSubsystem->MessengerComponentAdded(this);
-	//	}
-	//}
-}
-
-void UMessengerComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
-{
-	Super::OnComponentDestroyed(bDestroyingHierarchy);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentDestroyed"));
-
-
-	//UWorld* world = GetWorld(); // No world during editor startup
-	//if (IsValid(world) && IsValid(GEngine))
-	//{
-	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
-	//	if (IsValid(MessageSystemSubsystem))
-	//	{
-	//		MessageSystemSubsystem->MessengerComponentRemoved(this);
-	//	}
-	//}
-}
-
-//void UMessengerComponent::DetermineUCSModifiedProperties()
+//void UMessengerComponent::PostInitProperties()
 //{
-//	Super::DetermineUCSModifiedProperties();
-//	UE_LOG(LogTemp, Warning, TEXT("Called: DetermineUCSModifiedProperties"));
-//	TArray<FMessageStruct> messageEvents = MessageEvents;
+//	Super::PostInitProperties();
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: PostInitProperties"));
 //}
-
-bool UMessengerComponent::Rename(const TCHAR* NewName, UObject* NewOuter, ERenameFlags Flags)
-{
-	bool returnValue = Super::Rename(NewName, NewOuter, Flags);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: Rename: NewName:'%s'"), NewName);
-	return returnValue;
-}
-
-void UMessengerComponent::PostRename(UObject* OldOuter, const FName OldName)
-{
-	Super::PostRename(OldOuter, OldName);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: PostRename: OldName:'%s'"), *OldName.ToString());
-}
-
-#if WITH_EDITOR
-bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
-{
-	bool returnValue = Super::Modify(bAlwaysMarkDirty);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
-
-	return returnValue;
-}
-
-void UMessengerComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeProperty"));
-}
-
-void UMessengerComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeChainProperty(PropertyChangedEvent);
-	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeChainProperty"));
-}
-#endif
+//
+//void UMessengerComponent::PostLoad()
+//{
+//	Super::PostLoad();
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: PostLoad"));
+//}
+//
+//void UMessengerComponent::OnComponentCreated()
+//{
+//	Super::OnComponentCreated();
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentCreated"));
+//
+//	//UWorld* world = GetWorld(); // No world during editor startup
+//	//if (IsValid(world) && IsValid(GEngine))
+//	//{
+//	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+//	//	if (IsValid(MessageSystemSubsystem))
+//	//	{
+//	//		QueueMessageSystemSubsystem->MessengerComponentAdded(this);
+//	//	}
+//	//}
+//}
+//
+//void UMessengerComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+//{
+//	Super::OnComponentDestroyed(bDestroyingHierarchy);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: OnComponentDestroyed"));
+//
+//
+//	//UWorld* world = GetWorld(); // No world during editor startup
+//	//if (IsValid(world) && IsValid(GEngine))
+//	//{
+//	//	UMessageSystemSubsystem* MessageSystemSubsystem = GEngine->GetEngineSubsystem<UMessageSystemSubsystem>();
+//	//	if (IsValid(MessageSystemSubsystem))
+//	//	{
+//	//		MessageSystemSubsystem->MessengerComponentRemoved(this);
+//	//	}
+//	//}
+//}
+//
+////void UMessengerComponent::DetermineUCSModifiedProperties()
+////{
+////	Super::DetermineUCSModifiedProperties();
+////	UE_LOG(LogTemp, Warning, TEXT("Called: DetermineUCSModifiedProperties"));
+////	TArray<FMessageStruct> messageEvents = MessageEvents;
+////}
+//
+//bool UMessengerComponent::Rename(const TCHAR* NewName, UObject* NewOuter, ERenameFlags Flags)
+//{
+//	bool returnValue = Super::Rename(NewName, NewOuter, Flags);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: Rename: NewName:'%s'"), NewName);
+//	return returnValue;
+//}
+//
+//void UMessengerComponent::PostRename(UObject* OldOuter, const FName OldName)
+//{
+//	Super::PostRename(OldOuter, OldName);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: PostRename: OldName:'%s'"), *OldName.ToString());
+//}
+//
+//#if WITH_EDITOR
+//bool UMessengerComponent::Modify(bool bAlwaysMarkDirty)
+//{
+//	bool returnValue = Super::Modify(bAlwaysMarkDirty);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: Modify"));
+//
+//	return returnValue;
+//}
+//
+//void UMessengerComponent::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+//{
+//	Super::PostEditChangeProperty(PropertyChangedEvent);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeProperty"));
+//}
+//
+//void UMessengerComponent::PostEditChangeChainProperty(FPropertyChangedChainEvent& PropertyChangedEvent)
+//{
+//	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+//	//UE_LOG(LogTemp, Warning, TEXT("Called: PostEditChangeChainProperty"));
+//}
+//#endif
