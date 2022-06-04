@@ -193,9 +193,9 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 				if (MessageParameterValue)
 				{
 					UE_LOG(LogTemp, Log, TEXT("MessageSystem: Found Property: %s"), *Key.ToString());
-					const FString& PropertyValue = MessageParameterValue->ParameterValue_AsSoftActorReference.IsNull()
-						? MessageParameterValue->ParameterValue
-						: MessageParameterValue->ParameterValue_AsSoftActorReference.ToString();
+					const FString& PropertyValue = MessageParameterValue->Value_AsSoftActorReference.IsNull()
+						? MessageParameterValue->ValueString
+						: MessageParameterValue->Value_AsSoftActorReference.ToString();
 
 					const TCHAR* Result = It->ImportText(*PropertyValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
 					bFailedImport = (Result == nullptr);
