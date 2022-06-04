@@ -15,7 +15,6 @@ struct MESSAGESYSTEM_API FMessagesCollectionsStruct
 {
 	GENERATED_BODY()
 	
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization")
 	TMap<FGuid, FMessageStruct> AllMessages;
 
@@ -33,6 +32,5 @@ struct MESSAGESYSTEM_API FMessagesCollectionsStruct
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Message System|Organization", AdvancedDisplay)
 	TArray<TSoftObjectPtr<UMessengerComponent>> PendingRemoveMessengerComponent;
-
 
 };
