@@ -66,6 +66,10 @@ struct MESSAGESYSTEM_API FMessageStruct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	bool bEnabled = true;
 
+	// Send Trigger Parameters as Event Parameters
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	bool bForwardTriggerParameters = true;
+
 	//// This message only can fire once.
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	//bool bOnlyOnce = false;
