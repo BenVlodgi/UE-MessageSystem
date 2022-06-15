@@ -168,23 +168,24 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 			bool bFoundDefault = false;
 			bool bFailedImport = true;
 
-
+			
 #if WITH_EDITOR
-			if (false) // Don't do this now that we're executing. If ever do this, do it somehow on compile to collect the defaults. Also want Blueprint Defaults
-			{
-				if (!FCString::Strcmp(*ArgStr, TEXT("")))
-				{
-					const FName DefaultPropertyKey(*(FString(TEXT("CPP_Default_")) + PropertyParam->GetName()));
-					const FString& PropertyDefaultValue = Function->GetMetaData(DefaultPropertyKey);
-					if (!PropertyDefaultValue.IsEmpty())
-					{
-						bFoundDefault = true;
-
-						const TCHAR* Result = It->ImportText(*PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
-						bFailedImport = (Result == nullptr);
-					}
-				}
-			}
+			// Don't do this now that we're executing. If ever do this, do it somehow on compile to collect the defaults. Also want Blueprint Defaults
+			//if (false) 
+			//{
+			//	if (!FCString::Strcmp(*ArgStr, TEXT("")))
+			//	{
+			//		const FName DefaultPropertyKey(*(FString(TEXT("CPP_Default_")) + PropertyParam->GetName()));
+			//		const FString& PropertyDefaultValue = Function->GetMetaData(DefaultPropertyKey);
+			//		if (!PropertyDefaultValue.IsEmpty())
+			//		{
+			//			bFoundDefault = true;
+			//
+			//			const TCHAR* Result = It->ImportText(*PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
+			//			bFailedImport = (Result == nullptr);
+			//		}
+			//	}
+			//}
 #endif
 
 			{
@@ -193,10 +194,14 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 				if (MessageParameterValue)
 				{
 					UE_LOG(LogTemp, Log, TEXT("MessageSystem: Found Property: %s"), *Key.ToString());
+					
 					//const FString& PropertyValue = MessageParameterValue->Value_AsSoftActorReference.IsNull()
 					//	? MessageParameterValue->ValueString
 					//	: MessageParameterValue->Value_AsSoftActorReference.ToString();
 					const FString& PropertyValue = UMessageParameterValueStructHelper::Conv_MessageParameterValueToString(*MessageParameterValue);
+
+					// TODO: Make better way to store and marshal parameters.
+					// Instead of ImportText, 
 
 					const TCHAR* Result = It->ImportText(*PropertyValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
 					bFailedImport = (Result == nullptr);
