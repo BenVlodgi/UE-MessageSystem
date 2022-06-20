@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Structs/MessageParameterValueStruct.h"
+#include "DynamicWildcard.h"
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
@@ -16,5 +17,5 @@ struct MESSAGESYSTEM_API FMessageParametersStruct
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	TMap<FName, FMessageParameterValueStruct> Parameters;
+	TMap<FName, FDynamicWildcard> Parameters;
 };

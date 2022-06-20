@@ -3,6 +3,7 @@
 
 #include "MessageSystemBPLibrary.h"
 #include "MessageSystem.h"
+#include "DynamicWildcardLibrary.h"
 
 DEFINE_LOG_CATEGORY(LogMessageSystem);
 
@@ -190,21 +191,35 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 
 			{
 				FName Key = FName(PropertyParam->GetName());
-				FMessageParameterValueStruct* MessageParameterValue = Parameters.Parameters.Find(Key);
+				FDynamicWildcard* MessageParameterValue = Parameters.Parameters.Find(Key);
 				if (MessageParameterValue)
 				{
 					UE_LOG(LogTemp, Log, TEXT("MessageSystem: Found Property: %s"), *Key.ToString());
+
+					auto* dataPointer = It->ContainerPtrToValuePtr<uint8>(Params);
 					
-					//const FString& PropertyValue = MessageParameterValue->Value_AsSoftActorReference.IsNull()
-					//	? MessageParameterValue->ValueString
-					//	: MessageParameterValue->Value_AsSoftActorReference.ToString();
-					const FString& PropertyValue = UMessageParameterValueStructHelper::Conv_MessageParameterValueToString(*MessageParameterValue);
-
-					// TODO: Make better way to store and marshal parameters.
-					// Instead of ImportText, 
-
-					const TCHAR* Result = It->ImportText(*PropertyValue, It->ContainerPtrToValuePtr<uint8>(Params), ExportFlags, NULL);
-					bFailedImport = (Result == nullptr);
+					/*
+					{
+						// Use Value as String 
+						const TCHAR* Result = It->ImportText(*MessageParameterValue->ValueAsString, dataPointer, ExportFlags, NULL);
+						bFailedImport = (Result == nullptr);
+					}//*/
+					{
+						// Use Serialized Value
+						// See UDynamicWildcardLibrary::execGetDynamicWildcard
+						It->ClearValue_InContainer(dataPointer); // should do this for whole array if exists, right?
+						bool bCompatiblePropertyType;
+						UDynamicWildcardLibrary::CopyDynamicWildcardToProperty(*MessageParameterValue, *It, dataPointer, bCompatiblePropertyType);
+						if (bCompatiblePropertyType)
+						{
+							bFailedImport = false;
+						}
+						//if (MessageParameterValue->PropertySerialized.IsValidIndex(0))
+						//{
+						//	It->CopyCompleteValue(dataPointer, MessageParameterValue->PropertySerialized.GetData());
+						//	bFailedImport = false;
+						//}
+					}
 				}
 				else
 				{
@@ -243,6 +258,15 @@ bool UMessageSystemBPLibrary::CallFunctionByNameWithArguments(UObject* Target, F
 		//if (!bFailed)
 		{
 			Target->ProcessEvent(Function, Params);
+		}
+
+		for (TFieldIterator<FProperty> It(Function); It; ++It)
+		{
+			if ((It->PropertyFlags & CPF_ReturnParm) == CPF_ReturnParm)
+			{
+				FDynamicWildcard functionReturnValue;// = UDynamicWildcardLibrary::MakeDynamicWildcardFromProperty(It);
+				ReturnValues.Parameters.Add("", functionReturnValue);
+			}
 		}
 
 		//!!destructframe see also UObject::ProcessEvent

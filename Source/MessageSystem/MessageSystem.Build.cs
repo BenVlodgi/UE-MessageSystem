@@ -26,6 +26,7 @@ public class MessageSystem : ModuleRules
 			new string[]
 			{
 				"Core",
+				"DynamicWildcardModule",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
