@@ -7,8 +7,8 @@
 //#include "Engine/Selection.h"
 #endif
 
+#include "DynamicParametersStruct.h"
 #include "Enums/WorldTypeEnum.h"
-#include "Structs/MessageParametersStruct.h"
 #include "Structs/MessageStruct.h"
 
 
@@ -40,27 +40,11 @@ class UMessageSystemBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
-	/** Get all Interfaces this Class implements. **/
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	static void GetClassInterfaces(UClass* Class, TArray<UClass*>& outInterfaces);
-
-	/** Get all function names from this Interface. **/
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	static void GetInterfaceFunctionNames(const UClass* Class, TArray<FString>& FunctionNames);
-
-	/** Get all function names from this Interface that have a specified keyword. **/
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem", meta=(DevelopmentOnly))
-	static void GetInterfaceFunctionNamesWithKeyword(const UClass* Class, FString keyword, TArray<FString>& FunctionNames);
-
-	/** Get all function names from this Interface that have a specified keyword. **/
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	static void GetClassFunctionProperies(const UClass* Class, FString FunctionName, TArray<FString>& PropertyNames);
-
-	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	static bool CallFunctionByNameWithArguments(UObject* Target, FName FunctionName, FMessageParametersStruct Parameters, FMessageParametersStruct& ReturnValues);
+public:
 
 	UFUNCTION(BlueprintPure, Category = "MessageSystem")
 	static FString MessageToString(FMessageStruct Message);
+
 
 	UFUNCTION(BlueprintPure, Category = "MessageSystem", meta=(DefaultToSelf = "Object"))
 	static EWorldTypeEnum GetWorldType(UObject* Object);

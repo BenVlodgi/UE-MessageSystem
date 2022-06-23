@@ -4,7 +4,7 @@
 
 //#include "MessengerComponent.h"
 class UMessengerComponent; // Forward Declaration can be used for pointers.
-#include "Structs/MessageParametersStruct.h"
+#include "DynamicParametersStruct.h"
 #include "Misc/Guid.h"
 
 #include "CoreMinimal.h"
@@ -30,7 +30,7 @@ struct MESSAGESYSTEM_API FMessageStruct
 
 	// Parameters associated with the triggering event.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	FMessageParametersStruct TriggerParameters;
+	FDynamicParametersStruct TriggerParameters;
 
 	// TODO: Enum
 	// Message Target Type
@@ -52,7 +52,7 @@ struct MESSAGESYSTEM_API FMessageStruct
 
 	// Parameters for this message event. If the message is calling a function, these parameters will be used to fill the function parameter values.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
-	FMessageParametersStruct EventParameters;
+	FDynamicParametersStruct EventParameters;
 
 	// How long after the triggering event before the message is sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")

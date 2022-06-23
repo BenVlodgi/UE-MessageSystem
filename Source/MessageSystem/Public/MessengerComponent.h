@@ -29,10 +29,10 @@ public:
 
 	// Events this actor broadcasts and parameters those events may send.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
-	TMap<FName, FMessageParametersStruct> BroadcastEventDefinitions;
+	TMap<FName, FDynamicParametersStruct> BroadcastEventDefinitions;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System|Config")
-	TMap<FName, FMessageParametersStruct> CustomInboundEventDefinitions;
+	TMap<FName, FDynamicParametersStruct> CustomInboundEventDefinitions;
 
 	UPROPERTY(BlueprintAssignable, Category = "MessageSystem")
 	FReceiveMessageDelegate OnReceiveMessage;
@@ -48,14 +48,20 @@ public:
 	//// Called every frame
 	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/** 
+	* Receiving the Message on our MessengerComponent.  If the message's SendEvent is a function name, then it has been called (or attempted) already.
+	* 
+	* @param Message Message sent from an external source.
+	* @param bAlreadyHandledByFunction This message has been sent as a function call, and was executed successfully.
+	*/
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	void ReceiveMessage(FMessageStruct Message);
+	void ReceiveMessage(FMessageStruct Message, bool bAlreadyHandledByFunction = false);
 
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	void BroadcastEvent(FName TriggerEventName, FMessageParametersStruct TriggerParameters);
+	void BroadcastEvent(FName TriggerEventName, FDynamicParametersStruct TriggerParameters);
 
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem")
-	void SendMessage(AActor* TargetActor, FName SendEvent, FMessageParametersStruct TriggerParameters);
+	void SendMessage(AActor* TargetActor, FName SendEvent, FDynamicParametersStruct TriggerParameters);
 
 	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	void AddMessage(FMessageStruct& Message);
@@ -81,6 +87,10 @@ public:
 // - Modify
 // - PostEditChangeProperty
 // - PostEditChangeChainProperty
+
+	// TODO: Check if this will work?
+	//PostDuplicate(bool bDuplicateForPIE)
+
 
 protected:
 	void OnRegister() override; // Called when a component is registered, after Scene is set, but before CreateRenderState_Concurrent or OnCreatePhysicsState are called.

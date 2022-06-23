@@ -2,6 +2,9 @@
 
 #include "MessengerComponent.h"
 
+#include "DynamicFunctionLibrary.h"
+
+
 // Sets default values for this component's properties
 UMessengerComponent::UMessengerComponent()
 {
@@ -9,11 +12,13 @@ UMessengerComponent::UMessengerComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+#if WITH_EDITORONLY_DATA
 	UBlueprint* Blueprint = Cast<UBlueprint>(GetClass()->ClassGeneratedBy);
 	if (Blueprint)
 	{
 		Blueprint->bRunConstructionScriptOnDrag = false; // Unsure if this has an effect. If it does its good.
 	}
+#endif
 }
 
 // TODO, implement some registering with the sub system.
@@ -43,13 +48,15 @@ UMessengerComponent::UMessengerComponent()
 //	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 //}
 
-void UMessengerComponent::ReceiveMessage(FMessageStruct Message)
+
+void UMessengerComponent::ReceiveMessage(FMessageStruct Message, bool bAlreadyHandledByFunction)
 {
 	// Log and Call dispatcher
 	OnReceiveMessage.Broadcast(this, Message);
 }
 
-void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParametersStruct TriggerParameters)
+
+void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FDynamicParametersStruct TriggerParameters)
 {
 #if WITH_EDITOR
 	if (GEngine)
@@ -87,7 +94,7 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 
 		// TODO: Fill in expected parameters for this message to the Destination.
 		// Example: If destination component expects Float parameter "Duration", if we don't have it in our EventParameters, then fill it with default value.
-		FMessageParametersStruct parameters = message.EventParameters;
+		FDynamicParametersStruct parameters = message.EventParameters;
 		for (auto& TriggerParameterKVP : TriggerParameters.Parameters)
 		{
 			parameters.Parameters.Add(TriggerParameterKVP);
@@ -111,14 +118,10 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 		bool bHandled = false;
 		//UE_LOG(LogTemp, Verbose, TEXT("BroadcastEvent: '%s. Target: %s. SendEvent: %s'"), sendingMessage.OnTrigger, targetActor->GetName(), sendingMessage.SendEvent);
 
-		// TODO: Try to handle this message Via Interface
-		FMessageParametersStruct callWithInterfaceSuccess_ReturnValues;
-		bHandled = UMessageSystemBPLibrary::CallFunctionByNameWithArguments(targetActor, sendingMessage.SendEvent, parameters, callWithInterfaceSuccess_ReturnValues);
-
-		if (!bHandled || true)
-		{
-			messengerComponent->ReceiveMessage(sendingMessage);
-		}
+		// Handle this message Via Interface
+		FDynamicParametersStruct callFunctionByName_ReturnValues;
+		bHandled = UDynamicFunctionLibrary::CallFunctionByName(targetActor, sendingMessage.SendEvent, parameters, callFunctionByName_ReturnValues);
+		messengerComponent->ReceiveMessage(sendingMessage, bHandled);
 	}
 
 #if WITH_EDITOR
@@ -129,7 +132,7 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FMessageParamet
 #endif
 }
 
-void UMessengerComponent::SendMessage(AActor* TargetActor, FName SendEvent, FMessageParametersStruct TriggerParameters)
+void UMessengerComponent::SendMessage(AActor* TargetActor, FName SendEvent, FDynamicParametersStruct TriggerParameters)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Called: Send Message (Not implemented yet)"));
 }
