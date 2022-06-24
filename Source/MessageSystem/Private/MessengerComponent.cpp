@@ -115,13 +115,13 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FDynamicParamet
 		if (targetActor) targetActor->Modify();
 #endif
 
-		bool bHandled = false;
+		bool bSuccess = false;
 		//UE_LOG(LogTemp, Verbose, TEXT("BroadcastEvent: '%s. Target: %s. SendEvent: %s'"), sendingMessage.OnTrigger, targetActor->GetName(), sendingMessage.SendEvent);
 
 		// Handle this message Via Interface
 		FDynamicParametersStruct callFunctionByName_ReturnValues;
-		bHandled = UDynamicFunctionLibrary::CallFunctionByName(targetActor, sendingMessage.SendEvent, parameters, callFunctionByName_ReturnValues);
-		messengerComponent->ReceiveMessage(sendingMessage, bHandled);
+		UDynamicFunctionLibrary::CallFunctionByName(targetActor, sendingMessage.SendEvent, parameters, bSuccess, callFunctionByName_ReturnValues);
+		messengerComponent->ReceiveMessage(sendingMessage, bSuccess);
 	}
 
 #if WITH_EDITOR
