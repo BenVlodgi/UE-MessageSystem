@@ -1,3 +1,4 @@
+// Copyright 2022 Dream Seed LLC.
 #pragma once
 
 #include "Misc/Guid.h"
