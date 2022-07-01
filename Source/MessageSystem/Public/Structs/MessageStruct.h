@@ -21,6 +21,7 @@ struct MESSAGESYSTEM_API FMessageStruct
 	FGuid ID;
 
 	// Component who sent/broadcast this message
+	// Note: This value is not set while in Sending Component's array. It is filled in when used externally, like when message is sent. This is becauses soft references will get in the way when trying to delete the owning actor.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	TSoftObjectPtr<UMessengerComponent> SendingComponent;
 
@@ -31,6 +32,11 @@ struct MESSAGESYSTEM_API FMessageStruct
 	// Parameters associated with the triggering event.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FDynamicParametersStruct TriggerParameters;
+
+	// These parameters are specifically allowed or blocked from passing through in event call as function parameters. 
+	// Default behavior if not found is: True: Send this parameter.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	TMap<FName, bool> TriggerParametersPassThrough;
 
 	// TODO: Enum
 	// Message Target Type
@@ -53,6 +59,11 @@ struct MESSAGESYSTEM_API FMessageStruct
 	// Parameters for this message event. If the message is calling a function, these parameters will be used to fill the function parameter values.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	FDynamicParametersStruct EventParameters;
+
+	// These parameters are specifically marked for sending as function parameters (This will override a trigger parameter of the same name).
+	// Default behavior if not found is: True: Send this parameter.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
+	TMap<FName, bool> EventParametersEnabled;
 
 	// How long after the triggering event before the message is sent.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")

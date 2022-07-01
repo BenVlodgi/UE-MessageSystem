@@ -41,7 +41,7 @@ void UMessageSystemSubsystem::OnLevelActorDeleted(AActor* Actor)
 	{
 		TArray<UMessengerComponent*> messengerComponents;
 		Actor->GetComponents<UMessengerComponent>(messengerComponents);
-		
+
 		for (int i = messengerComponents.Num() - 1; i >= 0; i--)
 		{
 			MessengerComponentRemoved(messengerComponents[i]);
@@ -155,7 +155,7 @@ void UMessageSystemSubsystem::MessengerComponentAdded(UMessengerComponent* Messe
 						AddMessage(MessengerComponent->MessageEvents[i], MessengerComponent, false); // Don't broadcast, we'll handle that.
 					}
 				}
-				else 
+				else
 				{
 					// If we have no messages to add, make sure we at-least track the component. (Normally this would happen in the AddMessage)
 					messagesCollections.AllMessengerComponents.AddUnique(MessengerComponent);
@@ -374,6 +374,19 @@ void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, UMessengerCo
 		if (BroadcastUpdate)
 		{
 			OnMessengerComponentUpdated.Broadcast(messengerComponent);
+		}
+	}
+}
+
+void UMessageSystemSubsystem::LookupMessage(bool& bFound, FMessageStruct& Message, FGuid ID, EWorldTypeEnum WorldType)
+{
+	bFound = false;
+	if (FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(WorldType))
+	{
+		if (FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(ID))
+		{
+			Message = *cachedMessage;
+			bFound = true;
 		}
 	}
 }

@@ -44,6 +44,7 @@ EWorldTypeEnum UMessageSystemBPLibrary::GetWorldType(UObject* Object)
 	return EWorldTypeEnum::None;
 }
 
+
 /*
 void UMessageSystemBPLibrary::GetClassFunctionPropertyDefaultValue (const UClass* Class, FString FunctionName, TArray<FString>& PropertyNames)
 {
