@@ -93,5 +93,10 @@ public:
 		}
 		return EWorldTypeEnum::None; // This will never happen unless a new World type is added to the engine, but not here.
 	}
+
+
+
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem", meta = (DisplayName = "Lookup Message", KeyWords = "find"))
+	void LookupMessage(bool& bFound, FMessageStruct& Message, FGuid ID, EWorldTypeEnum WorldType = EWorldTypeEnum::Editor);
 	
 };

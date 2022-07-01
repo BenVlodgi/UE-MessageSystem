@@ -13,6 +13,7 @@
 
 
 
+
 DECLARE_LOG_CATEGORY_EXTERN(LogMessageSystem, Log, All);
 
 #include "Kismet/BlueprintFunctionLibrary.h"
@@ -48,5 +49,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "MessageSystem", meta=(DefaultToSelf = "Object"))
 	static EWorldTypeEnum GetWorldType(UObject* Object);
+
 
 };

@@ -97,7 +97,11 @@ void UMessengerComponent::BroadcastEvent(FName TriggerEventName, FDynamicParamet
 		FDynamicParametersStruct parameters = message.EventParameters;
 		for (auto& TriggerParameterKVP : TriggerParameters.Parameters)
 		{
-			parameters.Parameters.Add(TriggerParameterKVP);
+			// Only add the triggering parameter if we don't already have it set from EventParameters, these take precedence. 
+			if (!parameters.Parameters.Find(TriggerParameterKVP.Key))
+			{
+				parameters.Parameters.Add(TriggerParameterKVP);
+			}
 		}
 
 		FMessageStruct sendingMessage = FMessageStruct();
@@ -179,6 +183,8 @@ void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 
 void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 {
+	Message.SendingComponent = NULL; // Don't set sending component until message is sent. Soft references will get in the way when trying to delete the owning actor.
+
 	for (int i = 0; i < MessageEvents.Num(); i++)
 	{
 		if (MessageEvents[i].ID == Message.ID)
@@ -195,6 +201,21 @@ void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 		if (IsValid(MessageSystemSubsystem))
 		{
 			MessageSystemSubsystem->UpdateMessage(Message, this);
+		}
+	}
+}
+
+void UMessengerComponent::LookupMessage(FGuid ID, bool& bFound, FMessageStruct& Message)
+{
+	bFound = false;
+	for (int i = 0; i < MessageEvents.Num(); i++)
+	{
+		if (MessageEvents[i].ID == Message.ID)
+		{
+			Message = MessageEvents[i];
+			Message.SendingComponent = this; // Sending Component isn't set until message is sent. Soft references will get in the way when trying to delete the owning actor.
+			bFound = true;
+			break;
 		}
 	}
 }

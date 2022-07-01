@@ -20,7 +20,8 @@ class MESSAGESYSTEM_API UMessengerComponent : public UActorComponent
 
 public:
 	// Broadcast these messages when event is triggered.
-	// TODO: Repplace Message list with TMap.
+	// Note: Sending Component value is not set while in Sending Component's array. It is filled in when used externally, like when message is sent. This is becauses soft references will get in the way when trying to delete the owning actor.
+	// TODO: Replace Message list with TMap.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Message System")
 	TArray<FMessageStruct> MessageEvents; 
 
@@ -74,6 +75,9 @@ public:
 	
 	//UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
 	//void RemoveMessageByID(FGuid ID);
+
+	UFUNCTION(BlueprintCallable, Category = "MessageSystem|Manage")
+	void LookupMessage(FGuid ID, bool& bFound, FMessageStruct& Message);
 
 
 
