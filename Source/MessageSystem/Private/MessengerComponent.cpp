@@ -183,15 +183,24 @@ void UMessengerComponent::RemoveMessage(const FMessageStruct Message)
 
 void UMessengerComponent::UpdateMessage(FMessageStruct Message)
 {
+	// Update on Component
 	Message.SendingComponent = NULL; // Don't set sending component until message is sent. Soft references will get in the way when trying to delete the owning actor.
+	bool bFound = false;
 
 	for (int i = 0; i < MessageEvents.Num(); i++)
 	{
 		if (MessageEvents[i].ID == Message.ID)
 		{
 			MessageEvents[i] = Message;
+			bFound = true;
 			break;
 		}
+	}
+
+	// If not found, then add it
+	if (!bFound)
+	{
+		AddMessage(Message);
 	}
 
 	UWorld* world = GetWorld(); // No world during editor startup
