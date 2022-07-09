@@ -250,7 +250,7 @@ void UMessageSystemSubsystem::MessengerComponentRemoved(UMessengerComponent* Mes
 	OnMessengerComponentRemoved.Broadcast(MessengerComponent);
 }
 
-void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
+void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate, int SpecificMessageBySenderIndex)
 {
 	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();
 	if (IsValid(messengerComponent)) // This check may not be nessesary
@@ -271,7 +271,15 @@ void UMessageSystemSubsystem::AddMessage(FMessageStruct Message, UMessengerCompo
 			messagesCollections.AllMessages.Add(Message.ID, Message);
 
 			FGuidArrayStruct messagesBySender = messagesCollections.AllMessagesBySender.FindOrAdd(messengerComponent);
-			messagesBySender.Array.AddUnique(Message.ID);
+			if (messagesBySender.Array.IsValidIndex(SpecificMessageBySenderIndex))
+			{
+				messagesBySender.Array.Remove(Message.ID);
+				messagesBySender.Array.Insert(Message.ID, SpecificMessageBySenderIndex);
+			}
+			else
+			{
+				messagesBySender.Array.AddUnique(Message.ID);
+			}
 
 			FGuidArrayStruct messagesByReceivingActor = messagesCollections.AllMessagesByReceivingActor.FindOrAdd(Message.TargetActor);
 			messagesByReceivingActor.Array.AddUnique(Message.ID);
@@ -363,13 +371,43 @@ void UMessageSystemSubsystem::RemoveMessage(FMessageStruct Message, UMessengerCo
 	}
 }
 
+int UMessageSystemSubsystem::GetMessageBySenderIndex(FMessageStruct Message, UMessengerComponent* MessengerComponent)
+{
+	UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();// Using this to get the correct world
+	if (IsValid(messengerComponent))
+	{
+		UWorld* world = messengerComponent->GetWorld();
+		if (IsValid(world))
+		{
+			EWorldTypeEnum worldType = ToWorldTypeEnum(world->WorldType);
+			if (FMessagesCollectionsStruct* messagesCollections = MessagesCollectionsByWorld.Find(worldType))
+			{
+				if (FMessageStruct* cachedMessage = messagesCollections->AllMessages.Find(Message.ID))
+				{
+					// This could be updated if MessengerComponent sent in null, and the message we looked up had a different component than the struct that was passed in.
+					messengerComponent = MessengerComponent ? MessengerComponent : cachedMessage->SendingComponent.Get();
+
+					// Remove this message from AllMessagesBySender cache
+					if (FGuidArrayStruct* messagesBySender = messagesCollections->AllMessagesBySender.Find(messengerComponent))
+					{
+						return messagesBySender->Array.Find(Message.ID);
+					}
+				}
+			}
+		}
+	}
+
+	return INDEX_NONE;
+}
+
 void UMessageSystemSubsystem::UpdateMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent, bool BroadcastUpdate)
 {
 	const UMessengerComponent* messengerComponent = MessengerComponent ? MessengerComponent : Message.SendingComponent.Get();
 	if (IsValid(messengerComponent))
 	{
+		int MessageBySenderIndex = GetMessageBySenderIndex(Message, MessengerComponent);
 		RemoveMessage(Message, MessengerComponent, false);
-		AddMessage(Message, MessengerComponent, false);
+		AddMessage(Message, MessengerComponent, false, MessageBySenderIndex);
 
 		if (BroadcastUpdate)
 		{

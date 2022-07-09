@@ -70,13 +70,16 @@ public:
 	void MessengerComponentRemoved(UMessengerComponent* MessengerComponent);
 
 	UFUNCTION()
-	void AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
+	void AddMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true, int SpecificMessageBySenderIndex = INDEX_NONE);
 
 	UFUNCTION()
 	void RemoveMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
 
 	UFUNCTION()
 	void UpdateMessage(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL, bool BroadcastUpdate = true);
+
+	UFUNCTION()
+	int GetMessageBySenderIndex(FMessageStruct Message, UMessengerComponent* MessengerComponent = NULL);
 
 	EWorldTypeEnum ToWorldTypeEnum(TEnumAsByte<EWorldType::Type> WorldType)
 	{
